@@ -1,0 +1,18 @@
+FullFrame — photography exhibitions built on TYDAL
+Copyright 2026 John Pree (eonity.org)
+
+This product is licensed under the Apache License, Version 2.0 (the "License");
+you may not use this product except in compliance with the License. A copy of
+the License is provided in the LICENSE file and at:
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+This product includes third-party open-source software, each distributed under
+its own license. Notable dependencies include Next.js, React, Drizzle ORM,
+better-sqlite3 and @tydal/client, among others listed in package.json. Their
+respective licenses and copyright notices are retained in their distributions.
+
+"FullFrame", "TYDAL" and "Eonity" and associated logos (including
+public/tydal-logo.png) are trademarks of Eonity. The Apache License 2.0 does
+not grant permission to use these marks except as required for reasonable and
+customary use in describing the origin of the work.

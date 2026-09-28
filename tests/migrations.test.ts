@@ -1,0 +1,37 @@
+import assert from "node:assert/strict";
+import { test } from "node:test";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+import Database from "better-sqlite3";
+import { runMigrations } from "../src/lib/migrate";
+
+/**
+ * The schema is one squashed migration (testing phase — no data to carry
+ * over). A fresh database gets every table, including each exhibition's
+ * TYDAL organization, and migrating again changes nothing.
+ */
+test("a fresh database gets the whole schema, and re-running migrations is harmless", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "fullframe-migration-"));
+  const previous = process.env.DATABASE_PATH;
+  try {
+    const file = path.join(dir, "fresh.sqlite");
+    process.env.DATABASE_PATH = file;
+    runMigrations();
+    runMigrations();
+
+    const db = new Database(file);
+    const tables = (db.prepare("select name from sqlite_master where type='table'").all() as { name: string }[])
+      .map((t) => t.name);
+    for (const table of ["exhibitions", "criteria", "jurors", "votes", "comments"])
+      assert.ok(tables.includes(table), `missing table ${table}`);
+
+    const columns = (db.prepare("pragma table_info(exhibitions)").all() as { name: string }[]).map((c) => c.name);
+    assert.ok(columns.includes("organization_id"));
+    assert.ok(columns.includes("organization_name"));
+    db.close();
+  } finally {
+    process.env.DATABASE_PATH = previous;
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});

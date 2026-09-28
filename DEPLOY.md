@@ -1,0 +1,146 @@
+# Deploying Full Frame
+
+Full Frame is a single Next.js instance backed by one SQLite file. It targets
+a small VM or container host — one process, one volume.
+
+## Prerequisites
+
+- A running **TYDAL** instance the server can reach.
+- Per exhibition, a shared TYDAL `gallery` vault URL plus **vault keys** for
+  it — a read key and a write key. The quickest way is TYDAL's own commands,
+  which create everything and print the URL and both keys:
+
+  ```bash
+  php artisan exhibitions:setup --org=SLUG                 # once per organization
+  php artisan exhibitions:create --org=SLUG --name="Name"  # once per exhibition
+  ```
+
+  Done by hand in TYDAL's admin instead, the keys need:
+  - read key: `abilities: ["read"]` — the jury proxy.
+  - write key: `abilities: ["w:activate", "w:open", "w:close"]` — the opening;
+    add `"w:ingest", "w:update", "w:withdraw"` for curator uploads, which also
+    need the vault's ingest target (`exposure_policy.ingest`) set in TYDAL.
+
+  Paste the shared URL in the studio. Private reads need a read key; publishing
+  and closing need a write key — the opening runs on the vault's own write key
+  (TYDAL's VAULT_WRITE_METHODS.md), not an org token. Keys are stored encrypted
+  per exhibition.
+
+## Environment (the contract)
+
+Copy `.env.example` → `.env`. Everything server-only; nothing is `NEXT_PUBLIC`.
+
+**Local development on Docker** needs only two values: `FULLFRAME_ENCRYPTION_KEY`
+and `ADMIN_PASSWORD` (without it the studio has no login, so you can't create an
+exhibition). Every other default in `.env.example` already fits a TYDAL on
+`http://localhost:8000` and Full Frame on `http://localhost:3020`. A production
+deploy also sets `APP_URL` and the TYDAL URLs to its real origins, and should
+set `SESSION_SECRET` to its own random value (`openssl rand -base64 32`).
+Without it the cookie key is derived from `ADMIN_PASSWORD` with a published
+prefix, so session cookies are only as strong as that password.
+
+| Var                                                             | Purpose                                                                                                                                                                                                    |
+| --------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `TYDAL_BASE_URL`                                                | Optional server alias for the local TYDAL instance (no `/api/v1`). Shared URLs on other origins are used directly.                                                                                         |
+| `TYDAL_LINK_BASE_URL`                                           | Public TYDAL prefix mapped to `TYDAL_BASE_URL` inside Docker; defaults to `TYDAL_BASE_URL`. Browser image reads use Full Frame’s `/api/vault` proxy.                                                       |
+| `FULLFRAME_ENCRYPTION_KEY`                                      | **Required.** 32-byte key (base64 or hex) that encrypts each exhibition's vault keys at rest (AES-256-GCM). `openssl rand -base64 32`. Rotating it strands stored keys (re-enter them).                    |
+| `DEV_VAULT_HASH` / `DEV_READ_VAULT_KEY` / `DEV_WRITE_VAULT_KEY` | Optional dev-seed convenience — the FullFrameSeeder prints these; `npm run db:seed` stores them on the `first-frame` exhibition. Not used in production (keys are entered per exhibition in the admin UI). |
+| `ADMIN_PASSWORD`                                                | The **installation admin**'s password — sees and manages every exhibition. Curators sign in with their TYDAL account instead (needs `TYDAL_BASE_URL`). Unset ⇒ no installation admin; set `SESSION_SECRET` then. |
+| `SESSION_SECRET`                                                | Optional explicit HMAC key for the admin + jury session cookies (defaults to a derivation of `ADMIN_PASSWORD`). Set it if you rotate the password without logging everyone out.                            |
+| `APP_URL`                                                       | Public origin — juror URLs, sitemap, robots.txt. Unset ⇒ empty sitemap and relative juror links.                                                                                                           |
+| `FULLFRAME_PORT`                                                | Host port compose publishes (default `3020`; the container always listens on 3020).                                                                                                                        |
+| `PREVIEW_MODE`                                                  | Dev-only phase-gate bypass (`npm run dev`). **Must be `false`/unset in production**; compose pins it to `false`, so `.env` cannot enable it there.                                                          |
+| `DATABASE_PATH`                                                 | SQLite path for `npm run dev` and the `db:*` scripts. Compose pins it to the volume (`/app/data/fullframe.sqlite`) and ignores `.env`.                                                                      |
+
+## Organizations and sign-in
+
+One Full Frame serves several TYDAL organizations. Curators sign into the
+studio with their **TYDAL account**: TYDAL confirms who they are
+(`POST /api/v1/auth/identify` — no token is kept) and which organizations they
+belong to. Each exhibition belongs to its vault's organization, learned from the
+write key when it is connected.
+
+| TYDAL role in the organization | In the studio |
+|---|---|
+| owner, admin, editor | manage its exhibitions, connect new ones |
+| viewer | read-only |
+| platform admin (or `ADMIN_PASSWORD`) | every exhibition |
+
+Give someone access with `php artisan exhibitions:create … --curator=email`
+(or in TYDAL). Removing them in TYDAL takes effect at their next sign-in;
+curator sessions last 12 hours.
+
+## Run
+
+```bash
+docker compose up -d --build          # builds the image, exposes port 3020
+```
+
+The schema is applied automatically on boot (generated SQL migrations, run by
+`db/index.ts` before it opens the app's connection) — a fresh volume is
+ready with no manual step. After changing `db/schema.ts`, regenerate the
+migration and rebuild:
+
+```bash
+npm run db:generate                   # commit the new drizzle/*.sql
+docker compose up -d --build
+```
+
+Exhibitions are created in the backoffice at `/admin` (log in with
+`ADMIN_PASSWORD`), not by a seed.
+
+## Multi-exhibition
+
+One instance hosts many exhibitions — routing is path-based
+(`/{exhibition}`), each bound to its own vault in the backoffice. No config
+per exhibition beyond creating it. (Host-based routing, if wanted, is a
+reverse-proxy concern in front of the single app.)
+
+## Backups
+
+The whole state is `data/fullframe.sqlite` (votes, jurors, appearance, selection,
+scoring records). Back it up with SQLite's online backup so a mid-write copy
+is consistent:
+
+```bash
+docker compose exec -T fullframe node -e 'const Database = require("better-sqlite3"); const db = new Database("/app/data/fullframe.sqlite"); db.backup("/tmp/fullframe-backup.sqlite").then(() => db.close());'
+docker compose cp fullframe:/tmp/fullframe-backup.sqlite ./fullframe-backup.sqlite
+```
+
+Copy the backup off-host on a schedule (cron/systemd timer). TYDAL holds the
+images and the published selection independently — this DB is only Full
+Frame's own layer.
+
+## Logs & rate limits
+
+The app emits structured JSON log lines (jury door misses/throttles, etc.).
+Jury writes and the `/j/{token}` door are rate-limited in-memory (per juror /
+per IP). Counters reset on restart — fine for a single instance; a
+multi-instance deploy would move `rateLimit()` to shared storage.
+
+## Security considerations
+
+- **Curators can make the server fetch URLs.** Checking a vault connection
+  fetches the pasted URL from the Full Frame server. Any signed-in curator can
+  therefore make the server request an address of their choosing, including
+  hosts on its internal network. Only give studio access to people you trust,
+  and if the host can reach sensitive internal services, restrict its outbound
+  traffic (firewall or egress proxy) to your TYDAL origins.
+- **`PREVIEW_MODE` must stay off** in production; it bypasses the opening gate.
+- **Back up `FULLFRAME_ENCRYPTION_KEY` separately** from the database: the key
+  decrypts every stored vault key, so a backup holding both exposes them.
+
+Report vulnerabilities as described in [SECURITY.md](SECURITY.md).
+
+## Local Docker networking
+
+For TYDAL at `http://localhost:8000`, set `TYDAL_LINK_BASE_URL=http://localhost:8000` and `TYDAL_BASE_URL=http://host.docker.internal:8000`. Paste the normal shared URL into Full Frame. The compose file maps `host.docker.internal` to the host gateway, so this also works on Linux. `APP_URL` is Full Frame's visitor-facing origin, typically `http://localhost:3020`; it does not set the listening port.
+
+`FULLFRAME_ENCRYPTION_KEY` belongs to Full Frame, not to TYDAL's vault configuration. Back it up whenever you back up the database, because restoring stored credentials needs it, but store it separately (for example in a password manager) so a leaked database backup does not also leak the key.
+
+## Schema migrations
+
+Startup migrations bring any database — fresh or existing — to the current
+schema, preserving exhibition settings, selections, credentials and jury
+records. They replay the full migration history, so keep the `drizzle`
+directory. Back up the database before rebuilding.

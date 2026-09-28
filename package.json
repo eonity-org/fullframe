@@ -1,0 +1,53 @@
+{
+  "name": "fullframe",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Full Frame — photo exhibition & voting platform built on TYDAL",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/eonity-org/fullframe.git"
+  },
+  "homepage": "https://github.com/eonity-org/fullframe#readme",
+  "bugs": {
+    "url": "https://github.com/eonity-org/fullframe/issues"
+  },
+  "scripts": {
+    "dev": "next dev -p 3020",
+    "build": "next build",
+    "start": "next start -p 3020",
+    "typecheck": "tsc --noEmit",
+    "db:push": "drizzle-kit push",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "tsx -e \"import { runMigrations } from './src/lib/migrate'; runMigrations()\"",
+    "db:seed": "tsx db/seed.ts",
+    "db:seed-jury": "tsx db/seed-jury.ts",
+    "test": "node --conditions=react-server --import tsx --test tests/*.test.ts",
+    "check:preview": "node scripts/check-preview.mjs",
+    "i18n": "tsx scripts/i18n.ts"
+  },
+  "dependencies": {
+    "@tydal/client": "^1.5.0",
+    "better-sqlite3": "^11.10.0",
+    "drizzle-orm": "^0.44.0",
+    "next": "^15.3.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "server-only": "^0.0.1"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.12",
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "drizzle-kit": "^0.31.0",
+    "eslint": "^8.57.0",
+    "eslint-config-next": "^15.3.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

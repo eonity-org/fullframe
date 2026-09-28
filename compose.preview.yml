@@ -1,0 +1,23 @@
+services:
+  preview:
+    build:
+      context: .
+      target: deps
+    image: fullframe-development
+    working_dir: /app
+    command: sh -c 'npm run db:migrate && npm run dev -- --hostname 0.0.0.0'
+    ports:
+      - "127.0.0.1:3021:3020"
+    env_file: .env
+    environment:
+      PREVIEW_MODE: "false"
+      NEXT_TELEMETRY_DISABLED: "1"
+      DATABASE_PATH: /app/data/preview.sqlite
+      APP_URL: http://localhost:3021
+    volumes:
+      - .:/app
+      - preview_dependencies:/app/node_modules
+    extra_hosts:
+      - host.docker.internal:host-gateway
+volumes:
+  preview_dependencies:

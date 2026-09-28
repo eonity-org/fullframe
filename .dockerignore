@@ -1,0 +1,14 @@
+node_modules
+.next
+out
+data
+*.sqlite
+*.sqlite3
+*.db
+.git
+.env
+.env.*
+!.env.example
+npm-debug.log*
+.DS_Store
+coverage
