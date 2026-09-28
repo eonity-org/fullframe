@@ -155,6 +155,114 @@ docker compose -p fullframe-prodtest down -v
 - **`APP_URL`** must be the public https origin, or juror links and the
   sitemap point at localhost.
 
+## Running without Docker
+
+Full Frame can run directly on a Linux server. It is the same standalone
+build the Docker image uses, assembled by hand. You need **Node 20 or later**
+(the image uses 22) and a C/C++ toolchain, because `better-sqlite3` compiles a
+native addon.
+
+```bash
+# Once: build tools (Debian/Ubuntu)
+sudo apt-get install -y python3 make g++
+
+git clone https://github.com/eonity-org/fullframe.git /opt/fullframe
+cd /opt/fullframe
+git checkout main
+```
+
+**Build.** The build needs the dev dependencies and a database to exist before
+Next.js's parallel page-data workers open it, so it runs the migrations against
+a throwaway file first, as the Dockerfile does:
+
+```bash
+npm ci
+export DATABASE_PATH=/tmp/fullframe-build.sqlite
+npm run db:migrate && npm run build
+unset DATABASE_PATH
+
+# Assemble the runnable folder: the same copies the Dockerfile makes.
+cp -r .next/static .next/standalone/.next/static
+cp -r public       .next/standalone/public
+cp -r drizzle      .next/standalone/drizzle
+```
+
+**Environment.** The standalone server doesn't copy `.env`, so keep the
+settings in a file that systemd loads, `/etc/fullframe.env`, readable only by
+root:
+
+```bash
+NODE_ENV=production
+PORT=3020
+HOSTNAME=127.0.0.1
+DATABASE_PATH=/var/lib/fullframe/fullframe.sqlite
+FULLFRAME_ENCRYPTION_KEY=...                  # openssl rand -base64 32
+ADMIN_PASSWORD=...
+SESSION_SECRET=...                            # openssl rand -base64 32
+APP_URL=https://fullframe.example.org
+TYDAL_BASE_URL=https://tydal.example.org
+TYDAL_LINK_BASE_URL=https://tydal.example.org
+# PREVIEW_MODE stays unset.
+```
+
+Set `HOSTNAME` explicitly: it is the address the server listens on, and Linux
+shells often set it to the machine's own name. `127.0.0.1` keeps the app
+reachable only through the reverse proxy.
+
+**Service.** `/etc/systemd/system/fullframe.service`:
+
+```ini
+[Unit]
+Description=Full Frame
+After=network.target
+
+[Service]
+User=fullframe
+WorkingDirectory=/opt/fullframe/.next/standalone
+EnvironmentFile=/etc/fullframe.env
+ExecStart=/usr/bin/node server.js
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+```
+
+```bash
+sudo useradd --system fullframe
+sudo mkdir -p /var/lib/fullframe && sudo chown fullframe: /var/lib/fullframe
+sudo chmod 600 /etc/fullframe.env
+sudo systemctl enable --now fullframe
+journalctl -u fullframe -f        # wait for migrate.done and the Next.js ready line
+```
+
+The schema is applied on first start, as with Docker. The migrations are read
+from `./drizzle` relative to the working directory, which is why
+`WorkingDirectory` points at the standalone folder.
+
+**HTTPS.** Put a reverse proxy in front for TLS, and have it redirect every
+http request to https (the session cookies rely on that). With Caddy:
+
+```
+fullframe.example.org {
+    reverse_proxy 127.0.0.1:3020
+}
+```
+
+**Updating.**
+
+1. Back up the database. The online backup under [Backups](#backups) works
+   here too: run the `node -e` part from `/opt/fullframe` with the path
+   `/var/lib/fullframe/fullframe.sqlite`.
+2. `git pull`, then repeat the build and assemble steps above.
+3. `sudo systemctl restart fullframe`.
+
+After upgrading Node itself, run `npm ci` again so `better-sqlite3` is
+recompiled for the new version, then rebuild.
+
+Compared with Docker, you manage the Node version and the toolchain, the data
+lives in `/var/lib/fullframe` rather than a volume, and the `fullframe` system
+user replaces the container's non-root user.
+
 ## Multi-exhibition
 
 One instance hosts many exhibitions — routing is path-based
