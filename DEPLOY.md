@@ -89,6 +89,72 @@ docker compose up -d --build
 Exhibitions are created in the backoffice at `/admin` (log in with
 `ADMIN_PASSWORD`), not by a seed.
 
+## Trying a production build locally
+
+The production image runs fine on a laptop, next to a TYDAL on
+`http://localhost:8000`. It uses the same multi-stage build as a real deploy:
+a standalone Next.js server with `NODE_ENV=production`, a non-root user,
+`PREVIEW_MODE` forced off, and a database volume that starts empty.
+
+**Running it next to another Full Frame.** Docker Compose names a project
+after its folder. A second clone in a folder also called `fullframe` joins the
+same project: `docker compose up` replaces the running container and reuses its
+database volume. It also competes for port 3020. Give the copy its own project
+name with `-p` and its own `FULLFRAME_PORT`:
+
+```bash
+git clone git@github.com:eonity-org/fullframe.git fullframe-prodtest
+cd fullframe-prodtest
+cp .env.example .env
+```
+
+Fill in `.env` the way a production deploy would:
+
+```bash
+FULLFRAME_ENCRYPTION_KEY=...                  # openssl rand -base64 32
+ADMIN_PASSWORD=...                            # a strong password
+SESSION_SECRET=...                            # openssl rand -base64 32
+APP_URL=http://localhost:3030
+FULLFRAME_PORT=3030
+TYDAL_BASE_URL=http://host.docker.internal:8000
+TYDAL_LINK_BASE_URL=http://localhost:8000
+```
+
+```bash
+docker compose -p fullframe-prodtest up -d --build
+docker compose -p fullframe-prodtest logs -f    # wait for migrate.done and the Next.js ready line
+```
+
+Then go through the whole flow, as an operator would:
+
+1. In TYDAL, create the exhibition's vault and keys:
+   `php artisan exhibitions:create --org=SLUG --name="Name" --curator=EMAIL`
+   (after `exhibitions:setup` once per organization).
+2. Sign into `http://localhost:3030/admin`, paste the vault URL and the keys
+   the command printed, and check the connection.
+3. Mint a juror, open their link, and score a few photographs.
+4. Select photographs, publish, and visit the public exhibition.
+5. Close the exhibition.
+
+Remove the copy and its data when you are done. This deletes only the
+`fullframe-prodtest` project's volume:
+
+```bash
+docker compose -p fullframe-prodtest down -v
+```
+
+**How it differs from a real deployment:**
+
+- **No TLS.** A real deploy puts HTTPS in front of the app with a reverse
+  proxy. The studio and jury cookies don't set the `Secure` flag, so sign-in
+  works over plain http here, and in production they rely on the proxy
+  redirecting every request to HTTPS.
+- **Local TYDAL.** A real deploy sets `TYDAL_BASE_URL` and
+  `TYDAL_LINK_BASE_URL` to TYDAL's public origin and doesn't need
+  `host.docker.internal`.
+- **`APP_URL`** must be the public https origin, or juror links and the
+  sitemap point at localhost.
+
 ## Multi-exhibition
 
 One instance hosts many exhibitions — routing is path-based
