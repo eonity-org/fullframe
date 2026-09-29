@@ -57,6 +57,7 @@ export default async function Page({
   const { access: upload, ingested, maxUploadBytes } = await uploadAccess(e);
   const added = await photoDetails(e, ingested).catch(() => []);
   const previews = new Map(gallery?.works.map((w) => [w.id, w.preview]) ?? []);
+  const larger = new Map(gallery?.works.map((w) => [w.id, w.display ?? w.preview]) ?? []);
   const sentBy = await submittedBy(ingested);
   const authors = await db.query.authors.findMany({
     where: eq(schema.authors.exhibitionId, id),
@@ -186,6 +187,7 @@ export default async function Page({
               added={added.map((photo) => ({
                 ...photo,
                 preview: previews.get(photo.hash) ?? null,
+                large: larger.get(photo.hash) ?? null,
                 authorLocked: sentBy.has(photo.hash),
               }))}
             />

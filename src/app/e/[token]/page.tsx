@@ -17,10 +17,13 @@ export const metadata: Metadata = { robots: { index: false, follow: false } };
 
 export default async function Page({
   params,
+  searchParams,
 }: {
   params: Promise<{ token: string }>;
+  searchParams: Promise<{ done?: string }>;
 }) {
   const { token } = await params;
+  const done = (await searchParams).done !== undefined;
   const found = await authorFromToken(token);
   if (!found) notFound();
   const { author, exhibition } = found;
@@ -36,12 +39,17 @@ export default async function Page({
   return (
     <I18nProvider locale={exhibitionLocale(exhibition)}>
       <div className="chrome-admin">
-        <header className="admin-header">
+        <header className="admin-header author-header">
           <span className="wordmark">
             <span className="frame-mark" />
             <span className="wordmark-name">FullFrame</span>
             <span className="admin-label">{t("Submission")}</span>
           </span>
+          {!done && (
+            <a className="button" href={`/e/${token}?done`}>
+              {t("Finish")}
+            </a>
+          )}
         </header>
         <main className="studio author-page">
           <div className="page-heading">
@@ -59,7 +67,25 @@ export default async function Page({
             </div>
           </div>
           <section className="panel">
-            {!open ? (
+            {done ? (
+              <div className="author-done">
+                <h2>{t("Thank you, {name}.", { name: author.name })}</h2>
+                <p className="muted">
+                  {open
+                    ? t.n(
+                        sent.length,
+                        "The curator has your photograph. You can come back with the same link to add or correct photographs while submissions are open.",
+                        "The curator has your {count} photographs. You can come back with the same link to add or correct photographs while submissions are open.",
+                      )
+                    : t("You can close this page.")}
+                </p>
+                {open && (
+                  <a className="quiet-link" href={`/e/${token}`}>
+                    {t("← Back to my photographs")}
+                  </a>
+                )}
+              </div>
+            ) : !open ? (
               <p className="hint">
                 {t(
                   "Submissions are closed. Your link stays valid, so come back when the curator opens them.",

@@ -2572,16 +2572,76 @@ details[open] > summary {
   display: grid;
   gap: 12px;
 }
+/* Photographs being prepared: a tinted frame of their own, Add at its foot,
+   so they never read as part of the exhibition list below. */
+.upload-staging {
+  margin: 0 0 32px;
+  padding: 20px;
+  background: var(--media);
+  border: 1px solid var(--line);
+  border-radius: 9px;
+}
+.upload-staging-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin-bottom: 14px;
+}
+.photo-uploader .upload-staging-head h3 {
+  margin: 0;
+}
+.upload-staging .upload-queue {
+  margin: 0;
+}
 .upload-item {
   display: grid;
-  grid-template-columns: 96px minmax(0, 1fr) auto;
-  gap: 16px;
-  align-items: center;
-  padding: 12px;
+  grid-template-columns: 160px minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+  padding: 16px;
+  background: var(--wall);
   border: 1px solid var(--line);
   border-radius: 6px;
 }
-.upload-item img,
+.upload-media {
+  display: grid;
+  gap: 6px;
+  justify-items: start;
+}
+.upload-media .quiet-button {
+  font-size: 13px;
+  color: var(--muted);
+  padding: 4px 0;
+}
+.upload-media .quiet-button:hover {
+  color: #923c2d;
+}
+.upload-actions {
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+}
+/* What is already in the exhibition: its own titled list, set apart. */
+.uploaded-section {
+  margin-top: 8px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+}
+.uploaded-list li {
+  padding: 8px 0;
+}
+.uploaded-list li + li {
+  border-top: 1px solid var(--line);
+}
+.upload-item img {
+  width: 160px;
+  aspect-ratio: 4/3;
+  object-fit: contain;
+  background: var(--media);
+  display: block;
+}
 .uploaded-list img,
 .uploaded-placeholder {
   width: 96px;
@@ -2653,6 +2713,25 @@ details[open] > summary {
 .upload-viewer-body .form-grid {
   grid-template-columns: minmax(0, 1fr);
 }
+.upload-viewer-spacer {
+  flex: 1;
+}
+.photo-facts {
+  margin: 0;
+  display: grid;
+  gap: 14px;
+}
+.photo-facts dt {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 650;
+  color: var(--muted);
+}
+.photo-facts dd {
+  margin: 2px 0 0;
+  white-space: pre-line;
+}
 .upload-viewer-nav {
   justify-content: flex-end;
   margin-top: 20px;
@@ -2661,7 +2740,9 @@ details[open] > summary {
   margin: 8px 0 12px;
 }
 @media (max-width: 640px) {
-  .upload-item,
+  .upload-item {
+    grid-template-columns: minmax(0, 1fr);
+  }
   .uploaded-list li {
     grid-template-columns: 64px minmax(0, 1fr);
   }
@@ -2674,12 +2755,10 @@ details[open] > summary {
   .upload-viewer-body img {
     height: 50vh;
   }
-  .upload-item img,
   .uploaded-list img,
   .uploaded-placeholder {
     width: 64px;
   }
-  .upload-item > button,
   .uploaded-list li > .button-row {
     grid-column: 2;
     justify-self: start;
@@ -2865,6 +2944,18 @@ details[open] > summary {
 }
 .author-page {
   max-width: 980px;
+}
+/* The author's header lines up with the page's narrower column. */
+.admin-header.author-header {
+  padding: 0 max(35px, calc((100% - 980px) / 2 + 35px));
+}
+.author-done {
+  display: grid;
+  gap: 14px;
+  justify-items: start;
+}
+.author-done .quiet-link {
+  justify-self: start;
 }
 @media (max-width: 640px) {
   .mini-contact-sheet.wide {

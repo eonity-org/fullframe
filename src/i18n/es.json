@@ -468,5 +468,15 @@
   "Reopen submissions": "Reabrir convocatoria",
   "Skip submissions": "Sin convocatoria",
   "Closed: authors can no longer send photographs. Their links keep working if you reopen.": "Cerrada: los autores ya no pueden enviar fotografías. Sus enlaces volverán a funcionar si la reabres.",
-  "Invite authors, then open submissions so they can send photographs — or skip this step.": "Invita a los autores y abre la convocatoria para que envíen sus fotografías, o salta este paso."
+  "Invite authors, then open submissions so they can send photographs — or skip this step.": "Invita a los autores y abre la convocatoria para que envíen sus fotografías, o salta este paso.",
+  "Finish": "Terminar",
+  "Thank you, {name}.": "Gracias, {name}.",
+  "You can close this page.": "Ya puedes cerrar esta página.",
+  "← Back to my photographs": "← Volver a mis fotografías",
+  "The curator has your photograph. You can come back with the same link to add or correct photographs while submissions are open.": "El comisario ya tiene tu fotografía. Mientras la convocatoria siga abierta, puedes volver con el mismo enlace para añadir o corregir fotografías.",
+  "The curator has your {count} photographs. You can come back with the same link to add or correct photographs while submissions are open.": "El comisario ya tiene tus {count} fotografías. Mientras la convocatoria siga abierta, puedes volver con el mismo enlace para añadir o corregir fotografías.",
+  "Describe each one, then add them. Click a picture to see it larger.": "Describe cada una y después añádelas. Haz clic en una imagen para verla más grande.",
+  "{count} photograph to add": "{count} fotografía por añadir",
+  "{count} photographs to add": "{count} fotografías por añadir",
+  "Close": "Cerrar"
 }

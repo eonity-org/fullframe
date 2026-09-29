@@ -24,6 +24,8 @@ type Queued = {
 export type AddedPhoto = PhotoDetails & {
   hash: string;
   preview: string | null;
+  /** A larger rendition, for looking at the photograph in the viewer. */
+  large?: string | null;
   /** Sent by an invited author: the author's name can't be changed. */
   authorLocked?: boolean;
 };
@@ -144,6 +146,8 @@ export function PhotoUploader({
   const [editing, setEditing] = useState<AddedPhoto | null>(null);
   const [draft, setDraft] = useState<PhotoDetails>({});
   const [removing, setRemoving] = useState<AddedPhoto | null>(null);
+  /** The photograph in the exhibition shown large, by hash. */
+  const [inspecting, setInspecting] = useState<string | null>(null);
   /** The queued photograph shown large, by queue key. */
   const [viewing, setViewing] = useState<string | null>(null);
   const [dialogError, setDialogError] = useState<string | null>(null);
@@ -190,6 +194,15 @@ export function PhotoUploader({
   };
 
   const pending = queue.filter((q) => q.state === "waiting" || q.state === "failed");
+
+  // Leaving (Finish, closing the tab) with photographs still unsent loses them:
+  // let the browser ask first.
+  useEffect(() => {
+    if (!pending.length) return;
+    const warn = (e: BeforeUnloadEvent) => e.preventDefault();
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [pending.length]);
   const incomplete = pending.some((q) => missingFields(q.details).length > 0);
 
   const upload = async () => {
@@ -220,6 +233,33 @@ export function PhotoUploader({
       setQueue((q) => q.filter((item) => item.state !== "done"));
       router.refresh();
     }
+  };
+
+  const openEdit = (photo: AddedPhoto) => {
+    const {
+      hash: _hash,
+      preview: _preview,
+      large: _large,
+      authorLocked: _locked,
+      ...details
+    } = photo;
+    setInspecting(null);
+    setDraft(details);
+    setDialogError(null);
+    setEditing(photo);
+  };
+  const openRemove = (photo: AddedPhoto) => {
+    setInspecting(null);
+    setDialogError(null);
+    setRemoving(photo);
+  };
+
+  // The viewer for photographs already in the exhibition walks the list.
+  const inspectIndex = added.findIndex((p) => p.hash === inspecting);
+  const inspected = inspectIndex >= 0 ? added[inspectIndex] : null;
+  const inspectStep = (by: number) => {
+    const next = added[inspectIndex + by];
+    if (next) setInspecting(next.hash);
   };
 
   const closeDialog = () => {
@@ -326,6 +366,17 @@ export function PhotoUploader({
           )}
 
           {queue.length > 0 && (
+            // The photographs being prepared, framed apart from those already
+            // in the exhibition, with their Add button at the foot of the frame.
+            <div className="upload-staging">
+              <div className="upload-staging-head">
+                <h3>
+                  {t.n(queue.length, "{count} photograph to add", "{count} photographs to add")}
+                </h3>
+                <span className="hint">
+                  {t("Describe each one, then add them. Click a picture to see it larger.")}
+                </span>
+              </div>
             <ul className="upload-queue">
               {queue.map((item) => {
                 const locked = busy || item.state === "done" || item.state === "uploading";
@@ -333,6 +384,7 @@ export function PhotoUploader({
                   patch(item.key, { details: { ...item.details, [key]: value } });
                 return (
                   <li key={item.key} className={`upload-item ${item.state}`}>
+                    <div className="upload-media">
                     <button
                       type="button"
                       className="upload-thumb"
@@ -345,6 +397,16 @@ export function PhotoUploader({
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={item.preview} alt="" />
                     </button>
+                    {(item.state === "waiting" || item.state === "failed") && !busy && (
+                      <button
+                        type="button"
+                        className="quiet-button"
+                        onClick={() => setQueue((q) => q.filter((x) => x.key !== item.key))}
+                      >
+                        {t("Remove from list")}
+                      </button>
+                    )}
+                    </div>
                     <div className="upload-fields">
                       <div className="form-grid">
                         <DetailFields
@@ -365,23 +427,12 @@ export function PhotoUploader({
                         </small>
                       )}
                     </div>
-                    {(item.state === "waiting" || item.state === "failed") && !busy && (
-                      <button
-                        type="button"
-                        className="quiet-button"
-                        onClick={() => setQueue((q) => q.filter((x) => x.key !== item.key))}
-                      >
-                        {t("Remove from list")}
-                      </button>
-                    )}
                   </li>
                 );
               })}
             </ul>
-          )}
-
           {pending.length > 0 && (
-            <div className="button-row">
+            <div className="button-row upload-actions">
               <button
                 type="button"
                 className="button primary"
@@ -399,21 +450,32 @@ export function PhotoUploader({
               )}
             </div>
           )}
+            </div>
+          )}
         </>
       ) : (
         note && <p className="hint">{note}</p>
       )}
 
       {added.length > 0 && (
-        <>
-          <h3>{addedTitle}</h3>
+        <div className="uploaded-section">
+          <h3>
+            {addedTitle} <span className="muted">· {added.length}</span>
+          </h3>
           <ul className={showPreviews ? "uploaded-list" : "uploaded-list text-only"}>
             {added.map((photo) => (
               <li key={photo.hash}>
                 {showPreviews &&
                   (photo.preview ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={photo.preview} alt="" />
+                    <button
+                      type="button"
+                      className="upload-thumb"
+                      onClick={() => setInspecting(photo.hash)}
+                      aria-label={t("View “{title}” larger", { title: photo.name ?? "" })}
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={photo.preview} alt="" />
+                    </button>
                   ) : (
                     <span className="uploaded-placeholder" aria-hidden="true" />
                   ))}
@@ -432,27 +494,14 @@ export function PhotoUploader({
                   <button
                     type="button"
                     className="quiet-button"
-                    onClick={() => {
-                      const {
-                        hash: _hash,
-                        preview: _preview,
-                        authorLocked: _locked,
-                        ...details
-                      } = photo;
-                      setDraft(details);
-                      setDialogError(null);
-                      setEditing(photo);
-                    }}
+                    onClick={() => openEdit(photo)}
                   >
                     {t("Edit")}
                   </button>
                   <button
                     type="button"
                     className="quiet-button"
-                    onClick={() => {
-                      setDialogError(null);
-                      setRemoving(photo);
-                    }}
+                    onClick={() => openRemove(photo)}
                   >
                     {t("Remove")}
                   </button>
@@ -460,7 +509,7 @@ export function PhotoUploader({
               </li>
             ))}
           </ul>
-        </>
+        </div>
       )}
 
       <ConfirmationDialog
@@ -514,6 +563,66 @@ export function PhotoUploader({
             onClick={() => setViewing(null)}
           >
             {t("Done")}
+          </button>
+        </div>
+      </ConfirmationDialog>
+
+      <ConfirmationDialog
+        open={!!inspected}
+        pending={false}
+        onCancel={() => setInspecting(null)}
+        className="upload-viewer"
+        title={inspected?.name ?? ""}
+      >
+        {inspected && (
+          <div className="upload-viewer-body">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={inspected.large || inspected.preview || ""} alt="" />
+            <dl className="photo-facts">
+              {PHOTO_FIELDS.filter((f) => inspected[f.key]).map((f) => (
+                <div key={f.key}>
+                  <dt>{t(f.label)}</dt>
+                  <dd>{inspected[f.key]}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        )}
+        <div className="button-row upload-viewer-nav">
+          {inspected && (
+            <>
+              <button type="button" className="quiet-button" onClick={() => openEdit(inspected)}>
+                {t("Edit")}
+              </button>
+              <button type="button" className="quiet-button" onClick={() => openRemove(inspected)}>
+                {t("Remove")}
+              </button>
+            </>
+          )}
+          <span className="upload-viewer-spacer" />
+          <button
+            type="button"
+            className="quiet-button"
+            disabled={inspectIndex <= 0}
+            onClick={() => inspectStep(-1)}
+            aria-label={t("Previous photograph")}
+          >
+            ←
+          </button>
+          <span className="muted">
+            {inspectIndex + 1} / {added.length}
+          </span>
+          <button
+            type="button"
+            className="quiet-button"
+            disabled={inspectIndex >= added.length - 1}
+            onClick={() => inspectStep(1)}
+            aria-label={t("Next photograph")}
+          >
+            →
+          </button>
+          <button type="button" className="button primary" onClick={() => setInspecting(null)}>
+            {t("Close")}
           </button>
         </div>
       </ConfirmationDialog>
