@@ -84,14 +84,20 @@ export function SubmissionsPanel({
         </label>
         <div className="button-row">
           {state === "open" ? (
-            <button type="button" disabled={pending} onClick={() => act(() => setSubmissions(exhibitionId, "closed"))}>
+            <button
+              type="button"
+              className="primary"
+              disabled={pending}
+              onClick={() => act(() => setSubmissions(exhibitionId, "closed"))}
+            >
               {t("Close submissions")}
             </button>
           ) : (
             <>
               <button
                 type="button"
-                className="primary"
+                // Reopening is a second thought, not the step's main action.
+                className={state === "closed" ? undefined : "primary"}
                 disabled={pending || !canOpen}
                 onClick={() => act(() => setSubmissions(exhibitionId, "open"))}
               >

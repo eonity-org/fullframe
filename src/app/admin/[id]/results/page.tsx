@@ -9,6 +9,7 @@ import { computeScores } from "@/lib/scoring";
 import { AdminNav } from "@/components/admin/AdminNav";
 import { StageGuide } from "@/components/admin/StageGuide";
 import { SelectionEditor } from "@/components/admin/SelectionEditor";
+import { ExhibitionDetails } from "@/components/admin/ExhibitionDetails";
 import { viewerT } from "@/i18n/server";
 export const dynamic = "force-dynamic";
 export default async function Page({
@@ -66,6 +67,7 @@ export default async function Page({
             )}
         </p>
       )}
+      <ExhibitionDetails exhibition={e} works={gallery?.works ?? []} />
       {gallery ? (
         <SelectionEditor
           id={id}
@@ -78,7 +80,7 @@ export default async function Page({
       ) : (
         <div className="empty-state">
           <h2>{t("Photographs couldn’t be loaded.")}</h2>
-          <p>{t("Check the connection in Overview, then try again.")}</p>
+          <p>{t("Check the connection in Setup, then try again.")}</p>
         </div>
       )}
       {ranked.length > 0 && (

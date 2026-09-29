@@ -82,6 +82,15 @@ export function SelectionEditor({
           </button>
         </div>
       )}
+      {/* The photographs in a white panel of their own, like the details above. */}
+      <section className="panel selection-panel">
+      <div className="selection-heading">
+        <p className="eyebrow">{t("The photographs")}</p>
+        <h2>{t("Choose what to exhibit")}</h2>
+        <p className="muted">
+          {t("Only the photographs you select go into the public exhibition.")}
+        </p>
+      </div>
       <div className="collection-toolbar">
         <span>
           {t.rich("{selected} of {total} selected", {
@@ -145,6 +154,7 @@ export function SelectionEditor({
           {t("There are no photographs to select.")}
         </p>
       )}
+      </section>
       {error && !confirm && (
         <p role="alert" className="error">
           {error}

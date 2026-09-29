@@ -1028,7 +1028,7 @@ legend {
   font-size: 23px;
   margin-top: 5px;
 }
-.section-heading > a {
+.section-heading > a:not(.button) {
   font-size: 12px;
 }
 .connect-card,
@@ -2964,4 +2964,27 @@ details[open] > summary {
   .uploaded-list.text-only li > .button-row {
     grid-column: 1;
   }
+}
+
+/* Selection & publish: two white panels — the exhibition's details, then
+   the photographs to choose from. */
+.exhibition-details .form-grid {
+  align-items: start;
+}
+@media (max-width: 640px) {
+  .exhibition-details .form-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.selection-heading {
+  margin: 0 0 20px;
+  display: grid;
+  gap: 4px;
+}
+.selection-panel .collection-toolbar {
+  margin-bottom: 24px;
+}
+.selection-heading h2 {
+  font-size: 28px;
 }

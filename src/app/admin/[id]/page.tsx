@@ -4,7 +4,7 @@ import { eq, inArray } from "drizzle-orm";
 import { db, schema } from "@db/index";
 import { requireStudioAccess } from "@/lib/studioPage";
 import { loadGallery } from "@/lib/gallery";
-import { saveExhibitionDetails, updateBinding } from "@/lib/actions";
+import { updateBinding } from "@/lib/actions";
 import { tydalBaseUrl, tydalLinkBaseUrl } from "@/lib/tydal";
 import { AdminNav } from "@/components/admin/AdminNav";
 import { StageGuide } from "@/components/admin/StageGuide";
@@ -20,7 +20,6 @@ import { authorUrl, submittedBy } from "@/lib/authors";
 import { photoDetails, uploadAccess, UPLOAD_ACCESS_NOTES } from "@/lib/uploads";
 import { Photograph } from "@/components/Photograph";
 import { viewerT } from "@/i18n/server";
-import { LOCALES, LOCALE_NAMES } from "@/i18n/core";
 export const dynamic = "force-dynamic";
 export default async function Page({
   params,
@@ -77,7 +76,7 @@ export default async function Page({
       </Link>
       <div className="page-heading">
         <div>
-          <p className="eyebrow">{t("Exhibition overview")}</p>
+          <p className="eyebrow">{t("Exhibition setup")}</p>
           <h1>{e.title}</h1>
         </div>
         <Link className="button" href={`/${e.slug}/salon`} target="_blank">
@@ -137,8 +136,9 @@ export default async function Page({
         title={t("Submissions")}
         active={setup && e.submissions !== "closed"}
         status={
+          // In setup the panel itself says the period is closed.
           setup
-            ? t("Submissions are closed.")
+            ? undefined
             : t("Submissions are only possible while you prepare the exhibition.")
         }
       >
@@ -254,7 +254,11 @@ export default async function Page({
             ? t("Close judging to choose the photographs.")
             : t("When the photographs are in, start judging or skip the jury to choose which to exhibit.")
         }
-        action={<Link href={`/admin/${id}/results`}>{t("Select →")}</Link>}
+        action={
+          <Link className="button primary" href={`/admin/${id}/results`}>
+            {t("Choose photographs →")}
+          </Link>
+        }
       >
         {gallery ? (
           <div className="mini-contact-sheet wide">
@@ -273,74 +277,10 @@ export default async function Page({
         )}
         <p className="muted">
           {t(
-            "Photographs and their descriptions live in TYDAL. Choose which ones to exhibit in Selection & publish.",
+            "In Selection & publish you choose the photographs to exhibit, write the exhibition’s texts and publish it.",
           )}
         </p>
-        <Link className="button primary" href={`/admin/${id}/results`}>
-          {t("Choose photographs →")}
-        </Link>
       </StudioStep>
-      <section className="panel">
-        <div className="section-heading">
-          <h2>{t("The exhibition")}</h2>
-          <span className="muted">{t("Public details")}</span>
-        </div>
-        <form
-          action={saveExhibitionDetails.bind(null, id)}
-          className="stack-form"
-        >
-          <label>
-            {t("Title")}
-            <input name="title" defaultValue={e.title} required />
-          </label>
-          <label>
-            {t("Exhibition language")}
-            <select name="locale" defaultValue={e.locale}>
-              {LOCALES.map((l) => (
-                <option key={l} value={l} lang={l}>
-                  {LOCALE_NAMES[l]}
-                </option>
-              ))}
-            </select>
-            <small className="muted">
-              {t(
-                "Visitors, invited authors and jurors see FullFrame in this language. Write the texts below in it too.",
-              )}
-            </small>
-          </label>
-          <label>
-            {t("Introduction")}
-            <input
-              name="subtitle"
-              defaultValue={e.subtitle || ""}
-              placeholder={t("A sentence to set the scene")}
-            />
-          </label>
-          <label>
-            {t("About this exhibition")}
-            <textarea
-              name="content"
-              rows={5}
-              defaultValue={e.welcomeContent || ""}
-              placeholder={t("Share the story behind the photographs.")}
-            />
-          </label>
-          <label>
-            {t("Cover photograph")}
-            <select name="coverImage" defaultValue={e.coverImage || ""}>
-              <option value="">{t("First photograph")}</option>
-              {gallery?.works
-                .filter((w) => w.preview)
-                .map((w) => (
-                  <option key={w.id} value={w.preview!}>
-                    {w.name}
-                  </option>
-                ))}
-            </select>
-          </label>
-          <button className="primary">{t("Save details")}</button>
-        </form>
-      </section>
       <details
         className="panel connection-settings"
         open={error === "vault" || !!saved}

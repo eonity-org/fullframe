@@ -18,10 +18,6 @@ export function MintJurorForm({ exhibitionId }: { exhibitionId: number }) {
         {t("Name")}
         <input name="name" required />
       </label>
-      <label>
-        {t("Email")}
-        <input name="email" type="email" />
-      </label>
       <button type="submit" disabled={pending}>
         {pending ? t("Creating…") : t("Invite juror")}
       </button>
