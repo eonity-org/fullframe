@@ -1154,11 +1154,6 @@ details[open] > summary {
   color: var(--muted);
   font-size: 12px;
 }
-.overview-columns {
-  display: grid;
-  grid-template-columns: 1.2fr 1fr;
-  gap: 24px;
-}
 .mini-contact-sheet {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1174,60 +1169,13 @@ details[open] > summary {
   padding: 8px;
   overflow: hidden;
 }
+.mini-contact-sheet.wide {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
 .mini-contact-sheet img {
   width: 100%;
   height: 100%;
   object-fit: contain;
-}
-.collection-peek > .button {
-  margin-top: 25px;
-}
-.juror-list {
-  list-style: none;
-  padding: 0;
-  margin: 25px 0;
-}
-.juror-list li {
-  padding: 18px 0;
-  border-top: 1px solid var(--line);
-}
-.juror-head {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-.juror-progress {
-  margin-left: auto;
-  font-size: 12px;
-  color: var(--muted);
-}
-.juror-url-row {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  margin-top: 12px;
-}
-.juror-url-row input {
-  font-size: 12px;
-}
-.juror-url-row button {
-  font-size: 12px;
-  padding: 8px 11px;
-}
-.juror-list .revoked {
-  opacity: 0.5;
-}
-.mint-result {
-  padding: 15px;
-  background: var(--accent-soft);
-  margin-bottom: 18px;
-  font-size: 13px;
-  overflow-wrap: anywhere;
-}
-.mint-result code {
-  display: block;
-  font-size: 12px;
 }
 .connection-settings {
   margin-top: 24px;
@@ -1776,9 +1724,6 @@ details[open] > summary {
   .photo-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-  .overview-columns {
-    grid-template-columns: 1fr;
-  }
   .studio-exhibitions {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -1993,11 +1938,11 @@ details[open] > summary {
   .section-heading h2 {
     font-size: 22px;
   }
-  .juror-url-row {
-    flex-wrap: wrap;
+  .invitation {
+    grid-template-columns: minmax(0, 1fr) auto;
   }
-  .juror-url-row input {
-    width: 100%;
+  .invitation-actions {
+    grid-column: 1 / -1;
   }
   .theme-options {
     grid-template-columns: 1fr;
@@ -2788,4 +2733,144 @@ details[open] > summary {
   font-size: 15px;
   line-height: 1.6;
   color: var(--muted);
+}
+
+/* ── Overview steps: numbered boxes that follow the exhibition's course ────── */
+.studio-step {
+  transition: opacity 0.15s ease;
+}
+.studio-step:not(.active) {
+  background: transparent;
+  opacity: 0.62;
+}
+/* A waiting box comes forward when the curator reaches into it. */
+.studio-step:not(.active):hover,
+.studio-step:not(.active):focus-within {
+  opacity: 1;
+}
+.studio-step.active {
+  border-color: var(--accent);
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+.step-title {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.step-number {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-family: var(--display);
+  font-weight: 650;
+  font-size: 15px;
+  border: 1px solid var(--line);
+  color: var(--muted);
+}
+.studio-step.active .step-number {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.step-status {
+  margin: -6px 0 18px;
+}
+.studio-step > .button {
+  margin-top: 20px;
+}
+.studio-step > .muted + .photo-uploader {
+  margin-top: 4px;
+}
+
+/* Box 1: the submission period. */
+.submission-controls {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 16px 24px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+.inline-field {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 550;
+}
+.inline-field select {
+  width: auto;
+  min-width: 76px;
+  padding: 8px 12px;
+}
+
+/* Invitations (authors, jurors): one line each — name, progress, actions. */
+.invitation-list {
+  list-style: none;
+  padding: 0;
+  margin: 20px 0 0;
+  border-bottom: 1px solid var(--line);
+}
+.invitation {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 16px;
+  padding: 8px 0;
+  border-top: 1px solid var(--line);
+  min-height: 52px;
+}
+.invitation-name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.invitation-progress {
+  font-size: 13px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.invitation-actions {
+  display: flex;
+  gap: 2px;
+}
+.invitation-actions button {
+  font-size: 13px;
+  padding: 6px 10px;
+}
+.invitation.revoked {
+  opacity: 0.5;
+}
+/* Invite someone: the fields and the button on one line. */
+.invite-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 8px 12px;
+  margin-top: 20px;
+}
+.invite-form label {
+  flex: 1 1 220px;
+}
+.invite-form > small,
+.invite-form > .error {
+  flex-basis: 100%;
+  margin: 0;
+}
+.uploaded-list.text-only li {
+  grid-template-columns: minmax(0, 1fr) auto;
+  padding: 10px 0;
+  border-top: 1px solid var(--line);
+}
+.author-page {
+  max-width: 980px;
+}
+@media (max-width: 640px) {
+  .mini-contact-sheet.wide {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .uploaded-list.text-only li > .button-row {
+    grid-column: 1;
+  }
 }

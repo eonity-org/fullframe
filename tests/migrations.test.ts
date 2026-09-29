@@ -23,12 +23,13 @@ test("a fresh database gets the whole schema, and re-running migrations is harml
     const db = new Database(file);
     const tables = (db.prepare("select name from sqlite_master where type='table'").all() as { name: string }[])
       .map((t) => t.name);
-    for (const table of ["exhibitions", "criteria", "jurors", "votes", "comments"])
+    for (const table of ["exhibitions", "criteria", "jurors", "votes", "comments", "authors", "submissions"])
       assert.ok(tables.includes(table), `missing table ${table}`);
 
     const columns = (db.prepare("pragma table_info(exhibitions)").all() as { name: string }[]).map((c) => c.name);
     assert.ok(columns.includes("organization_id"));
     assert.ok(columns.includes("organization_name"));
+    assert.ok(columns.includes("submissions") && columns.includes("submission_limit"));
     db.close();
   } finally {
     process.env.DATABASE_PATH = previous;

@@ -260,8 +260,10 @@ export async function createExhibition(formData: FormData): Promise<void> {
         : null;
     if (detail) redirect(`/admin?error=vault&detail=${encodeURIComponent(detail)}`);
   }
-  // A new exhibition starts in the curator's language; they can change it.
-  const locale = await viewerLocale();
+  // Chosen when connecting (it sets the language authors and jurors see);
+  // the curator's own language otherwise. Editable later in the details.
+  const chosen = String(formData.get("locale") || "");
+  const locale = isLocale(chosen) ? chosen : await viewerLocale();
   const title = String(formData.get("title") || meta.name).trim();
   const proposed =
     String(formData.get("slug") || title)
@@ -308,8 +310,8 @@ export async function createExhibition(formData: FormData): Promise<void> {
     weight: 1,
     position: 1,
   });
-  // Straight to the overview's "Add photographs" panel: the optional next step.
-  redirect(`/admin/${exhibition.id}#photographs`);
+  // Straight to the overview's first box.
+  redirect(`/admin/${exhibition.id}#submissions`);
 }
 
 export async function updateBinding(
@@ -490,10 +492,14 @@ export async function setPhase(
     return { ok: true };
   }
 
-  // setup ↔ judging ↔ selection.
+  // setup ↔ judging ↔ selection. Leaving setup ends the submission period;
+  // coming back doesn't reopen it by itself.
   await db
     .update(schema.exhibitions)
-    .set({ phase: target })
+    .set({
+      phase: target,
+      ...(exhibition.submissions === "open" ? { submissions: "closed" as const } : {}),
+    })
     .where(eq(schema.exhibitions.id, exhibitionId));
   revalidatePath(`/admin/${exhibitionId}`, "layout");
   revalidatePath(`/${exhibition.slug}`, "layout");
@@ -572,6 +578,16 @@ export async function deleteExhibition(
   await db
     .delete(schema.jurors)
     .where(eq(schema.jurors.exhibitionId, exhibitionId));
+  const authors = await db.query.authors.findMany({
+    where: eq(schema.authors.exhibitionId, exhibitionId),
+  });
+  for (const author of authors)
+    await db
+      .delete(schema.submissions)
+      .where(eq(schema.submissions.authorId, author.id));
+  await db
+    .delete(schema.authors)
+    .where(eq(schema.authors.exhibitionId, exhibitionId));
   await db
     .delete(schema.criteria)
     .where(eq(schema.criteria.exhibitionId, exhibitionId));
@@ -663,6 +679,90 @@ export async function regenerateJuror(
     .where(and(eq(schema.jurors.id, jurorId), eq(schema.jurors.exhibitionId, exhibitionId)));
   revalidatePath(`/admin/${exhibitionId}`);
   return { url: jurorUrl(token) };
+}
+
+// ── Submissions ──────────────────────────────────────────────────────────────
+
+/**
+ * Move the submission period: open it, close it, or skip it (closed without
+ * ever opening). Only while the exhibition is in setup.
+ */
+export async function setSubmissions(
+  exhibitionId: number,
+  state: "open" | "closed",
+): Promise<{ ok: true } | { error: string }> {
+  await requireManage(exhibitionId);
+  const t = await viewerT();
+  const exhibition = await db.query.exhibitions.findFirst({
+    where: eq(schema.exhibitions.id, exhibitionId),
+  });
+  if (!exhibition) return { error: t("This exhibition no longer exists.") };
+  if (exhibition.phase !== "setup")
+    return {
+      error: t("Submissions can only be open while you prepare the exhibition."),
+    };
+  await db
+    .update(schema.exhibitions)
+    .set({ submissions: state })
+    .where(eq(schema.exhibitions.id, exhibitionId));
+  revalidatePath(`/admin/${exhibitionId}`);
+  return { ok: true };
+}
+
+/** How many photographs each invited author may send. */
+export async function setSubmissionLimit(
+  exhibitionId: number,
+  limit: number,
+): Promise<{ ok: true } | { error: string }> {
+  await requireManage(exhibitionId);
+  const t = await viewerT();
+  if (!Number.isInteger(limit) || limit < 1 || limit > 100)
+    return { error: t("Allow between 1 and 100 photographs.") };
+  await db
+    .update(schema.exhibitions)
+    .set({ submissionLimit: limit })
+    .where(eq(schema.exhibitions.id, exhibitionId));
+  revalidatePath(`/admin/${exhibitionId}`);
+  return { ok: true };
+}
+
+export type MintAuthorResult = { ok: true } | { error: string } | null;
+
+/** Invite an author: a name, fixed from now on, and a personal link. */
+export async function mintAuthor(
+  exhibitionId: number,
+  _previous: MintAuthorResult,
+  formData: FormData,
+): Promise<MintAuthorResult> {
+  await requireManage(exhibitionId);
+  const t = await viewerT();
+  const name = String(formData.get("name") ?? "").trim();
+  if (!name) return { error: t("An author needs a name.") };
+  const { newToken } = await import("./authors");
+  await db
+    .insert(schema.authors)
+    .values({ exhibitionId, name, ...newToken() });
+  revalidatePath(`/admin/${exhibitionId}`);
+  return { ok: true };
+}
+
+/** The author's link stops working; photographs already sent stay. */
+export async function revokeAuthor(
+  exhibitionId: number,
+  authorId: number,
+): Promise<void> {
+  await requireManage(exhibitionId);
+  await db
+    .update(schema.authors)
+    .set({ revokedAt: new Date() })
+    // Scoped to this exhibition: access was checked for it, not for the author.
+    .where(
+      and(
+        eq(schema.authors.id, authorId),
+        eq(schema.authors.exhibitionId, exhibitionId),
+      ),
+    );
+  revalidatePath(`/admin/${exhibitionId}`);
 }
 
 // ── Selection & opening (E4) ─────────────────────────────────────────────────

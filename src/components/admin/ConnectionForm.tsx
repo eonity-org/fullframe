@@ -1,9 +1,11 @@
 "use client";
 import { useState, useTransition } from "react";
 import { createExhibition, previewConnection } from "@/lib/actions";
-import { useT } from "@/i18n/client";
+import { useLocale, useT } from "@/i18n/client";
+import { LOCALES, LOCALE_NAMES } from "@/i18n/core";
 export function ConnectionForm() {
   const t = useT();
+  const locale = useLocale();
   const [url, setUrl] = useState("");
   const [read, setRead] = useState("");
   const [write, setWrite] = useState("");
@@ -111,6 +113,23 @@ export function ConnectionForm() {
           <label>
             {t("Exhibition title")}
             <input name="title" defaultValue={result.name} required />
+          </label>
+        )}
+        {result?.ok && (
+          <label>
+            {t("Exhibition language")}
+            <select name="locale" defaultValue={locale}>
+              {LOCALES.map((l) => (
+                <option key={l} value={l} lang={l}>
+                  {LOCALE_NAMES[l]}
+                </option>
+              ))}
+            </select>
+            <small className="muted">
+              {t(
+                "Visitors, invited authors and jurors see FullFrame in this language. You can change it later.",
+              )}
+            </small>
           </label>
         )}
         <div className="button-row">

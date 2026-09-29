@@ -21,7 +21,12 @@ type Queued = {
   error?: string;
 };
 
-export type AddedPhoto = PhotoDetails & { hash: string; preview: string | null };
+export type AddedPhoto = PhotoDetails & {
+  hash: string;
+  preview: string | null;
+  /** Sent by an invited author: the author's name can't be changed. */
+  authorLocked?: boolean;
+};
 
 /** Bytes as megabytes with one decimal, e.g. 12.4. */
 const mb = (bytes: number) => (bytes / 1024 / 1024).toFixed(1);
@@ -60,10 +65,13 @@ function send(
 function DetailFields({
   values,
   disabled,
+  lockAuthor,
   onChange,
 }: {
   values: PhotoDetails;
   disabled?: boolean;
+  /** The author comes from an invitation and is shown, not edited. */
+  lockAuthor?: boolean;
   onChange: (key: PhotoFieldKey, value: string) => void;
 }) {
   const t = useT();
@@ -87,7 +95,7 @@ function DetailFields({
             <input
               value={values[field.key] ?? ""}
               required={isRequired(field)}
-              disabled={disabled}
+              disabled={disabled || (lockAuthor && field.key === "author")}
               placeholder={"placeholder" in field ? t(field.placeholder) : undefined}
               onChange={(e) => onChange(field.key, e.target.value)}
             />
@@ -99,19 +107,32 @@ function DetailFields({
 }
 
 export function PhotoUploader({
-  exhibitionId,
+  endpoint,
   canUpload,
   maxUploadBytes,
   note,
   added,
+  addedTitle,
+  author,
+  remaining = null,
+  showPreviews = true,
 }: {
-  exhibitionId: number;
+  /** Where photographs are sent; one is corrected or removed at `{endpoint}/{hash}`. */
+  endpoint: string;
   canUpload: boolean;
   /** TYDAL's limit per file, in bytes; null when it doesn't say. */
   maxUploadBytes: number | null;
   /** Why uploads are unavailable, already translated. */
   note: string | null;
   added: AddedPhoto[];
+  /** Heading over the photographs already sent, already translated. */
+  addedTitle: string;
+  /** An invited author's page: every photograph carries this name. */
+  author?: string;
+  /** How many more photographs may be sent; null for no limit. */
+  remaining?: number | null;
+  /** The sent photographs' previews can be shown (the studio, not an author). */
+  showPreviews?: boolean;
 }) {
   const t = useT();
   const router = useRouter();
@@ -119,6 +140,7 @@ export function PhotoUploader({
   const [busy, setBusy] = useState(false);
   /** Files turned away for size when chosen — never uploaded, so no time is wasted. */
   const [tooLarge, setTooLarge] = useState<Array<{ name: string; size: number }>>([]);
+  const [overLimit, setOverLimit] = useState(false);
   const [editing, setEditing] = useState<AddedPhoto | null>(null);
   const [draft, setDraft] = useState<PhotoDetails>({});
   const [removing, setRemoving] = useState<AddedPhoto | null>(null);
@@ -144,14 +166,22 @@ export function PhotoUploader({
     const chosen = Array.from(files || []).filter((f) => f.type.startsWith("image/"));
     const fits = (f: File) => maxUploadBytes === null || f.size <= maxUploadBytes;
     setTooLarge(chosen.filter((f) => !fits(f)).map((f) => ({ name: f.name, size: f.size })));
-    const images = chosen.filter(fits);
+    // Beyond an author's limit, the extra files are left out rather than queued.
+    const room =
+      remaining === null
+        ? Infinity
+        : remaining - queue.filter((q) => q.state !== "done").length;
+    const images = chosen.filter(fits).slice(0, Math.max(0, room));
+    setOverLimit(chosen.filter(fits).length > images.length);
     setQueue((q) => [
       ...q.filter((item) => item.state !== "done"),
       ...images.map((file) => ({
         key: `${file.name}-${file.size}-${file.lastModified}-${Math.random()}`,
         file,
         preview: URL.createObjectURL(file),
-        details: { name: titleFromFilename(file.name) },
+        details: author
+          ? { name: titleFromFilename(file.name), author }
+          : { name: titleFromFilename(file.name) },
         state: "waiting" as const,
         progress: 0,
       })),
@@ -171,7 +201,7 @@ export function PhotoUploader({
       body.set("image", item.file);
       for (const [key, value] of Object.entries(item.details))
         if (value?.trim()) body.set(key, value.trim());
-      const result = await send(`/admin/${exhibitionId}/photographs`, body, (p) =>
+      const result = await send(endpoint, body, (p) =>
         patch(item.key, { progress: p }),
       );
       if (result.ok) {
@@ -204,7 +234,7 @@ export function PhotoUploader({
     setDialogError(null);
     try {
       const res = await fetch(
-        `/admin/${exhibitionId}/photographs/${encodeURIComponent(photo.hash)}`,
+        `${endpoint}/${encodeURIComponent(photo.hash)}`,
         method === "PATCH"
           ? {
               method,
@@ -237,20 +267,8 @@ export function PhotoUploader({
   };
 
   return (
-    <section className="panel photo-uploader" id="photographs">
-      <div className="section-heading">
-        <div>
-          <p className="eyebrow">{t("While you set up")}</p>
-          <h2>{t("Add photographs")}</h2>
-        </div>
-      </div>
-      <p className="muted">
-        {t(
-          "Photographs you add here go straight into this exhibition’s vault in TYDAL, with the details you give them — TYDAL keeps them exactly as written.",
-        )}
-      </p>
-
-      {canUpload ? (
+    <div className="photo-uploader">
+      {canUpload && remaining !== 0 ? (
         <>
           <label
             className="upload-drop"
@@ -297,6 +315,16 @@ export function PhotoUploader({
             </div>
           )}
 
+          {overLimit && remaining !== null && (
+            <p className="error" role="alert">
+              {t.n(
+                remaining,
+                "You can send {count} more photograph; the others were left out.",
+                "You can send {count} more photographs; the others were left out.",
+              )}
+            </p>
+          )}
+
           {queue.length > 0 && (
             <ul className="upload-queue">
               {queue.map((item) => {
@@ -322,6 +350,7 @@ export function PhotoUploader({
                         <DetailFields
                           values={item.details}
                           disabled={locked}
+                          lockAuthor={!!author}
                           onChange={setField}
                         />
                       </div>
@@ -377,20 +406,23 @@ export function PhotoUploader({
 
       {added.length > 0 && (
         <>
-          <h3>{t("Added here")}</h3>
-          <ul className="uploaded-list">
+          <h3>{addedTitle}</h3>
+          <ul className={showPreviews ? "uploaded-list" : "uploaded-list text-only"}>
             {added.map((photo) => (
               <li key={photo.hash}>
-                {photo.preview ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={photo.preview} alt="" />
-                ) : (
-                  <span className="uploaded-placeholder" aria-hidden="true" />
-                )}
+                {showPreviews &&
+                  (photo.preview ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={photo.preview} alt="" />
+                  ) : (
+                    <span className="uploaded-placeholder" aria-hidden="true" />
+                  ))}
                 <span>
                   {photo.name}
-                  {photo.author && <small className="muted"> · {photo.author}</small>}
-                  {!photo.preview && (
+                  {photo.author && !author && (
+                    <small className="muted"> · {photo.author}</small>
+                  )}
+                  {showPreviews && !photo.preview && (
                     <small className="upload-state ok">
                       {t("Added — TYDAL is preparing the preview.")}
                     </small>
@@ -401,7 +433,12 @@ export function PhotoUploader({
                     type="button"
                     className="quiet-button"
                     onClick={() => {
-                      const { hash: _hash, preview: _preview, ...details } = photo;
+                      const {
+                        hash: _hash,
+                        preview: _preview,
+                        authorLocked: _locked,
+                        ...details
+                      } = photo;
                       setDraft(details);
                       setDialogError(null);
                       setEditing(photo);
@@ -440,6 +477,7 @@ export function PhotoUploader({
             <div className="form-grid">
               <DetailFields
                 values={viewed.details}
+                lockAuthor={!!author}
                 disabled={busy || viewed.state === "done" || viewed.state === "uploading"}
                 onChange={(key, value) =>
                   patch(viewed.key, { details: { ...viewed.details, [key]: value } })
@@ -496,6 +534,7 @@ export function PhotoUploader({
           <div className="form-grid">
             <DetailFields
               values={draft}
+              lockAuthor={!!author || !!editing?.authorLocked}
               disabled={dialogPending}
               onChange={(key, value) => setDraft((d) => ({ ...d, [key]: value }))}
             />
@@ -559,6 +598,6 @@ export function PhotoUploader({
           </button>
         </div>
       </ConfirmationDialog>
-    </section>
+    </div>
   );
 }

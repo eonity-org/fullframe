@@ -1,3 +1,16 @@
+CREATE TABLE `authors` (
+	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+	`exhibition_id` integer NOT NULL,
+	`name` text NOT NULL,
+	`token_hash` text NOT NULL,
+	`token` text,
+	`revoked_at` integer,
+	`created_at` integer NOT NULL,
+	`updated_at` integer NOT NULL,
+	FOREIGN KEY (`exhibition_id`) REFERENCES `exhibitions`(`id`) ON UPDATE no action ON DELETE no action
+);
+--> statement-breakpoint
+CREATE UNIQUE INDEX `authors_token_hash_unique` ON `authors` (`token_hash`);--> statement-breakpoint
 CREATE TABLE `comments` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`juror_id` integer NOT NULL,
@@ -36,6 +49,8 @@ CREATE TABLE `exhibitions` (
 	`read_vault_key` text,
 	`write_vault_key` text,
 	`phase` text DEFAULT 'setup' NOT NULL,
+	`submissions` text DEFAULT 'pending' NOT NULL,
+	`submission_limit` integer DEFAULT 5 NOT NULL,
 	`locale` text DEFAULT 'en' NOT NULL,
 	`welcome_content` text,
 	`cover_image` text,
@@ -61,6 +76,16 @@ CREATE TABLE `jurors` (
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `jurors_token_hash_unique` ON `jurors` (`token_hash`);--> statement-breakpoint
+CREATE TABLE `submissions` (
+	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+	`author_id` integer NOT NULL,
+	`resource_hash` text NOT NULL,
+	`created_at` integer NOT NULL,
+	`updated_at` integer NOT NULL,
+	FOREIGN KEY (`author_id`) REFERENCES `authors`(`id`) ON UPDATE no action ON DELETE no action
+);
+--> statement-breakpoint
+CREATE UNIQUE INDEX `submissions_resource_hash_unique` ON `submissions` (`resource_hash`);--> statement-breakpoint
 CREATE TABLE `votes` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`juror_id` integer NOT NULL,

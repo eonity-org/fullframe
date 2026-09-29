@@ -45,6 +45,9 @@ export const EXHIBITION_PHASES = [
 ] as const;
 export type ExhibitionPhase = (typeof EXHIBITION_PHASES)[number];
 
+export const SUBMISSION_STATES = ["pending", "open", "closed"] as const;
+export type SubmissionState = (typeof SUBMISSION_STATES)[number];
+
 export const exhibitions = sqliteTable("exhibitions", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   slug: text("slug").notNull().unique(),
@@ -78,6 +81,17 @@ export const exhibitions = sqliteTable("exhibitions", {
   readVaultKey: text("read_vault_key"),
   writeVaultKey: text("write_vault_key"),
   phase: text("phase", { enum: EXHIBITION_PHASES }).notNull().default("setup"),
+  /**
+   * The submission period for invited authors (`authors`): `pending` until the
+   * curator opens it or skips it, `open` while authors may send photographs,
+   * `closed` once closed or skipped. Only honoured in `setup`; leaving setup
+   * closes it.
+   */
+  submissions: text("submissions", { enum: SUBMISSION_STATES })
+    .notNull()
+    .default("pending"),
+  /** How many photographs each invited author may send. */
+  submissionLimit: integer("submission_limit").notNull().default(5),
   /**
    * The exhibition's language (`en` | `es`): its public pages and jury speak
    * it, since the curator writes the exhibition's own text in it. The studio
@@ -170,5 +184,35 @@ export const comments = sqliteTable("comments", {
     .references(() => jurors.id),
   resourceHash: text("resource_hash").notNull(),
   body: text("body").notNull(),
+  ...timestamps,
+});
+
+/**
+ * Invited authors. Each gets a personal `/e/{token}` link to send up to the
+ * exhibition's `submissionLimit` photographs while submissions are open. The author's name is
+ * fixed at invitation: every photograph sent through the link carries it, and
+ * nobody — author or curator — can change it afterwards.
+ */
+export const authors = sqliteTable("authors", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  exhibitionId: integer("exhibition_id")
+    .notNull()
+    .references(() => exhibitions.id),
+  name: text("name").notNull(),
+  /** sha256 of the personal URL token — the lookup key. */
+  tokenHash: text("token_hash").notNull().unique(),
+  /** The raw token, kept so the curator can re-copy the link (as for jurors). */
+  token: text("token"),
+  revokedAt: integer("revoked_at", { mode: "timestamp" }),
+  ...timestamps,
+});
+
+/** Which author sent which photograph (a vault-issued hash). */
+export const submissions = sqliteTable("submissions", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  authorId: integer("author_id")
+    .notNull()
+    .references(() => authors.id),
+  resourceHash: text("resource_hash").notNull().unique(),
   ...timestamps,
 });

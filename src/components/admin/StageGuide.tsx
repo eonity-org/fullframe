@@ -60,6 +60,12 @@ function stage(
             how: t("with Start judging in the Jury section"),
             href: jury,
           },
+          {
+            direction: "back",
+            label: t("Back to preparing"),
+            how: t("in the Photographs section, to add or correct photographs"),
+            href: `/admin/${id}#photographs`,
+          },
         ],
       };
     case "open":
@@ -92,9 +98,9 @@ function stage(
           },
           {
             direction: "forward",
-            label: t("Publish"),
-            how: t("skip the jury and publish from Selection & publish"),
-            href: results,
+            label: t("Skip the jury"),
+            how: t("in the Jury section, to choose the photographs yourself"),
+            href: jury,
           },
         ],
       };
