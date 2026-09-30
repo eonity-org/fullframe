@@ -472,7 +472,8 @@ export async function saveCuratedSelection(
     .update(schema.exhibitions)
     .set({ selectedHashes: [...new Set(hashes)] })
     .where(eq(schema.exhibitions.id, exhibitionId));
-  revalidatePath(`/admin/${exhibitionId}/results`);
+  // The selection's size shows on every tab's stage bar (publish needs one).
+  revalidatePath(`/admin/${exhibitionId}`, "layout");
 }
 
 /**
@@ -508,7 +509,7 @@ export async function setPhase(
   if (exhibition.phase === target) return { ok: true };
 
   // Opening is a process, not a flag — `openExhibition` owns it.
-  if (target === "open") redirect(`/admin/${exhibitionId}/results`);
+  if (target === "open") redirect(`/admin/${exhibitionId}/publish`);
 
   // Reopen: close the vault before dropping back — un-publish and restore the
   // full submission projection.
@@ -856,9 +857,9 @@ export async function openExhibition(exhibitionId: number): Promise<void> {
   });
   if (!exhibition) return;
   if (!exhibition.selectedHashes?.length)
-    redirect(`/admin/${exhibitionId}/results?error=selection`);
+    redirect(`/admin/${exhibitionId}/publish?error=selection`);
   if (exhibition.phase === "judging")
-    redirect(`/admin/${exhibitionId}/results?error=judging`);
+    redirect(`/admin/${exhibitionId}/publish?error=judging`);
 
   const { rawVotes } = await import("./votesData");
   const { computeScores } = await import("./scoring");
@@ -868,7 +869,7 @@ export async function openExhibition(exhibitionId: number): Promise<void> {
   const ranked = computeScores(data);
   const selected = exhibition.selectedHashes ?? [];
   if (selected.length === 0)
-    redirect(`/admin/${exhibitionId}/results?error=empty`);
+    redirect(`/admin/${exhibitionId}/publish?error=empty`);
 
   // The immutable scoring record — FullFrame owns scoring, so this is the
   // record of record (persisted below; the exhibition is phase-frozen once
@@ -899,7 +900,7 @@ export async function openExhibition(exhibitionId: number): Promise<void> {
   const t = await viewerT();
   if (!result.ok) {
     redirect(
-      `/admin/${exhibitionId}/results?error=writeback&detail=${encodeURIComponent(
+      `/admin/${exhibitionId}/publish?error=writeback&detail=${encodeURIComponent(
         result.errors
           .map((e) => t(e))
           .join(" · ")
@@ -918,6 +919,6 @@ export async function openExhibition(exhibitionId: number): Promise<void> {
     })
     .where(eq(schema.exhibitions.id, exhibitionId));
 
-  revalidatePath(`/admin/${exhibitionId}/results`);
-  redirect(`/admin/${exhibitionId}/results?opened=1`);
+  revalidatePath(`/admin/${exhibitionId}`, "layout");
+  redirect(`/admin/${exhibitionId}/publish?opened=1`);
 }

@@ -1215,36 +1215,41 @@ details[open] > summary {
   gap: 20px;
   flex-wrap: wrap;
 }
-.stage-guide {
+/* Stage bar: where the exhibition stands, and its one forward move on the right. */
+.stage-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 24px;
   margin: 20px 0;
-  padding: 16px 22px;
+  padding: 14px 22px;
   border: 1px solid var(--line);
   border-radius: 6px;
   background: #fff;
 }
-.stage-guide p {
+.stage-bar.open {
+  background: #edf5f0;
+  border-color: #cddfd2;
+}
+.stage-bar p {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
   gap: 4px 12px;
   margin: 0;
 }
-.stage-guide ul {
-  margin: 10px 0 0;
-  padding: 0;
-  list-style: none;
-  display: grid;
-  gap: 4px;
-}
-.stage-guide li {
+.stage-actions {
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
-  gap: 4px 8px;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px 18px;
 }
-.stage-guide li a {
-  font-weight: 600;
-  color: var(--accent-dark);
+.stage-actions .error {
+  flex-basis: 100%;
+  margin: 0;
+  text-align: right;
 }
 .status.ok {
   background: #edf5f0;

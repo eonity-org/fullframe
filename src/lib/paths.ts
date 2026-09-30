@@ -68,3 +68,14 @@ export function directoryPathFor(exhibition: {
 export function isExhibitionBase(path: string): boolean {
   return /^\/[a-z0-9][a-z0-9-]*(\/[a-z0-9][a-z0-9-]*)?$/.test(path);
 }
+
+/**
+ * Where the studio opens an exhibition: Appearance & publish once it's being
+ * selected or is live (publishing, or closing, is what's left to do), Setup
+ * before that.
+ */
+export function studioPath(exhibition: { id: number; phase: string }): string {
+  return exhibition.phase === "selection" || exhibition.phase === "open"
+    ? `/admin/${exhibition.id}/publish`
+    : `/admin/${exhibition.id}`;
+}

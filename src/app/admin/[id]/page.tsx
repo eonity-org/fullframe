@@ -7,7 +7,8 @@ import { loadGallery } from "@/lib/gallery";
 import { updateBinding } from "@/lib/actions";
 import { tydalBaseUrl, tydalLinkBaseUrl } from "@/lib/tydal";
 import { AdminNav } from "@/components/admin/AdminNav";
-import { StageGuide } from "@/components/admin/StageGuide";
+import { StageBar } from "@/components/admin/StageBar";
+import { OverviewStats } from "@/components/admin/OverviewStats";
 import { JurorList } from "@/components/admin/JurorList";
 import { MintJurorForm } from "@/components/admin/MintJurorForm";
 import { JuryToggle } from "@/components/admin/JuryToggle";
@@ -85,7 +86,13 @@ export default async function Page({
         </Link>
       </div>
       <AdminNav id={id} />
-      <StageGuide id={id} phase={e.phase} />
+      <StageBar
+        id={id}
+        phase={e.phase}
+        page="setup"
+        selected={e.selectedHashes?.length ?? null}
+        base={exhibitionPath(e)}
+      />
       {error && (
         <p className="error" role="alert">
           {error === "connected"
@@ -99,37 +106,11 @@ export default async function Page({
         </p>
       )}
       {saved && <p className="status ok">{t("Connection saved.")}</p>}
-      <div className="overview-stats">
-        <div>
-          <span className="eyebrow">{t("Photographs")}</span>
-          <strong>{gallery?.works.length ?? "—"}</strong>
-          <small>
-            {setup && e.submissions === "open"
-              ? t("Submissions open")
-              : gallery
-                ? t("Connected to TYDAL")
-                : t("Vault unavailable")}
-          </small>
-        </div>
-        <div>
-          <span className="eyebrow">{t("Exhibition")}</span>
-          <strong>{e.phase === "open" ? t("Published") : t("Private")}</strong>
-          <small>
-            {e.phase === "open"
-              ? t("Ready to share")
-              : t("Only you and invited jurors")}
-          </small>
-        </div>
-        <div>
-          <span className="eyebrow">{t("Jury")}</span>
-          <strong>{jurors.filter((j) => !j.revokedAt).length}</strong>
-          <small>
-            {e.phase === "judging"
-              ? t("Judging is open")
-              : t("Optional · invite people below")}
-          </small>
-        </div>
-      </div>
+      <OverviewStats
+        exhibition={e}
+        photographs={gallery?.works.length ?? null}
+        jurors={jurors.filter((j) => !j.revokedAt).length}
+      />
       <StudioStep
         number={1}
         id="submissions"
@@ -278,7 +259,7 @@ export default async function Page({
         )}
         <p className="muted">
           {t(
-            "In Selection & publish you choose the photographs to exhibit, write the exhibition’s texts and publish it.",
+            "In Selection you write the exhibition’s texts and choose the photographs; then pick its style and publish it in Appearance & publish.",
           )}
         </p>
       </StudioStep>
