@@ -9,6 +9,7 @@
 import { useActionState, useState, useTransition } from "react";
 import {
   mintAuthor,
+  regenerateAuthor,
   revokeAuthor,
   setSubmissionLimit,
   setSubmissions,
@@ -50,6 +51,8 @@ export function SubmissionsPanel({
     null,
   );
 
+  // Like the jury: nothing to open until someone holds an invitation.
+  const invited = authors.some((a) => !a.revoked);
   const act = (run: () => Promise<{ ok: true } | { error: string }>) =>
     start(async () => {
       setError("");
@@ -98,7 +101,7 @@ export function SubmissionsPanel({
                 type="button"
                 // Reopening is a second thought, not the step's main action.
                 className={state === "closed" ? undefined : "primary"}
-                disabled={pending || !canOpen}
+                disabled={pending || !canOpen || !invited}
                 onClick={() => act(() => setSubmissions(exhibitionId, "open"))}
               >
                 {state === "closed" ? t("Reopen submissions") : t("Open submissions")}
@@ -136,6 +139,10 @@ export function SubmissionsPanel({
               progress={t.n(limit, "{sent} / {count} photograph", "{sent} / {count} photographs", {
                 sent: a.sent,
               })}
+              regenerate={async () => {
+                const result = await regenerateAuthor(exhibitionId, a.id);
+                return "url" in result ? result.url : null;
+              }}
               revoke={() => revokeAuthor(exhibitionId, a.id)}
             />
           ))}

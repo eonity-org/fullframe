@@ -740,6 +740,16 @@ export async function setSubmissions(
     return {
       error: t("Submissions can only be open while you prepare the exhibition."),
     };
+  if (
+    state === "open" &&
+    !(await db.query.authors.findFirst({
+      where: and(
+        eq(schema.authors.exhibitionId, exhibitionId),
+        isNull(schema.authors.revokedAt),
+      ),
+    }))
+  )
+    return { error: t("Invite an author first: nobody could send photographs yet.") };
   await db
     .update(schema.exhibitions)
     .set({ submissions: state })
@@ -783,6 +793,31 @@ export async function mintAuthor(
     .values({ exhibitionId, name, ...newToken() });
   revalidatePath(`/admin/${exhibitionId}`);
   return { ok: true };
+}
+
+/**
+ * A new personal link for an author (the old one stops working) — the answer
+ * to a lost or leaked link. Photographs already sent stay theirs.
+ */
+export async function regenerateAuthor(
+  exhibitionId: number,
+  authorId: number,
+): Promise<{ url: string } | { error: string }> {
+  await requireManage(exhibitionId);
+  const { authorUrl, newToken } = await import("./authors");
+  const fresh = newToken();
+  await db
+    .update(schema.authors)
+    .set({ ...fresh, revokedAt: null })
+    // Scoped to this exhibition: access was checked for it, not for the author.
+    .where(
+      and(
+        eq(schema.authors.id, authorId),
+        eq(schema.authors.exhibitionId, exhibitionId),
+      ),
+    );
+  revalidatePath(`/admin/${exhibitionId}`);
+  return { url: authorUrl(fresh.token) };
 }
 
 /** The author's link stops working; photographs already sent stay. */

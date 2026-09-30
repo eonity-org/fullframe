@@ -3,6 +3,7 @@ import type { Exhibition } from "@/lib/exhibitions";
 import type { GalleryWork } from "@/lib/gallery";
 import { viewerT } from "@/i18n/server";
 import { LOCALES, LOCALE_NAMES } from "@/i18n/core";
+import { SaveChangesButton } from "./SaveChangesButton";
 
 /**
  * The exhibition's public details — title, language, texts, cover. Lives on
@@ -76,7 +77,11 @@ export async function ExhibitionDetails({
             placeholder={t("Share the story behind the photographs.")}
           />
         </label>
-        <button className="primary">{t("Save details")}</button>
+        <SaveChangesButton
+          label={t("Save details")}
+          savingLabel={t("Saving…")}
+          savedLabel={t("Details saved")}
+        />
       </form>
     </section>
   );

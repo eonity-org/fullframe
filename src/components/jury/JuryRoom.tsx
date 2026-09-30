@@ -27,6 +27,17 @@ export function JuryRoom({
 }) {
   const t = useT();
   const [scores, setScores] = useState(initialScores);
+  // The juror's own scores for a photograph, as given: "4 / 5" for a single
+  // criterion, "Light 4/5 · Framing 3/5" for several.
+  const scoreLine = (id: string) =>
+    criteria
+      .filter((c) => scores[id]?.[c.id])
+      .map((c) =>
+        criteria.length === 1
+          ? `${scores[id][c.id]} / ${c.scaleMax}`
+          : `${c.name} ${scores[id][c.id]}/${c.scaleMax}`,
+      )
+      .join(" · ");
   const [index, setIndex] = useState(() =>
     Math.max(
       0,
@@ -204,9 +215,14 @@ export function JuryRoom({
                 <div className="photo-caption">
                   <h2>{w.name}</h2>
                   <span>
-                    {criteria.every((c) => scores[w.id]?.[c.id])
-                      ? t("Scored ✓")
-                      : t("To score")}
+                    {[
+                      criteria.every((c) => scores[w.id]?.[c.id])
+                        ? t("Scored ✓")
+                        : t("To score"),
+                      scoreLine(w.id),
+                    ]
+                      .filter(Boolean)
+                      .join(" · ")}
                   </span>
                 </div>
               </button>

@@ -482,5 +482,7 @@
   "Public details": "Datos públicos",
   "The photographs’ texts in this vault are in {language}: visitors will read them in a different language from FullFrame’s.": "Los textos de las fotografías de esta bóveda están en {language}: el público los leerá en un idioma distinto al de FullFrame.",
   "The photographs’ texts in this vault are in another language ({code}): visitors will read them in a different language from FullFrame’s.": "Los textos de las fotografías de esta bóveda están en otro idioma ({code}): el público los leerá en un idioma distinto al de FullFrame.",
-  "This vault’s organization is called “{slug}” in TYDAL, a name FullFrame keeps for its own pages. Rename the organization in TYDAL, then connect again.": "La organización de esta bóveda se llama «{slug}» en TYDAL, un nombre que FullFrame reserva para sus propias páginas. Cambia el nombre de la organización en TYDAL y vuelve a conectar."
+  "This vault’s organization is called “{slug}” in TYDAL, a name FullFrame keeps for its own pages. Rename the organization in TYDAL, then connect again.": "La organización de esta bóveda se llama «{slug}» en TYDAL, un nombre que FullFrame reserva para sus propias páginas. Cambia el nombre de la organización en TYDAL y vuelve a conectar.",
+  "Details saved": "Datos guardados",
+  "Invite an author first: nobody could send photographs yet.": "Invita primero a un autor: todavía nadie podría enviar fotografías."
 }
