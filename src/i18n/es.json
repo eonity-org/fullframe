@@ -478,5 +478,7 @@
   "Judging is closed": "Evaluación cerrada",
   "No jury": "Sin jurado",
   "{count} photograph selected": "{count} fotografía seleccionada",
-  "{count} photographs selected": "{count} fotografías seleccionadas"
+  "{count} photographs selected": "{count} fotografías seleccionadas",
+  "Gather the photographs and, if you want one, a jury.": "Reúne las fotografías y, si quieres, un jurado.",
+  "Give the exhibition its look, then open it to the public.": "Dale a la exposición su aspecto y ábrela al público."
 }

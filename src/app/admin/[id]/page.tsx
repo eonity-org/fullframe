@@ -80,6 +80,7 @@ export default async function Page({
         <div>
           <p className="eyebrow">{t("Exhibition setup")}</p>
           <h1>{e.title}</h1>
+          <p className="intro">{t("Gather the photographs and, if you want one, a jury.")}</p>
         </div>
         <Link className="button" href={exhibitionPath(e, "salon")} target="_blank">
           {t("Preview exhibition ↗")}

@@ -55,6 +55,7 @@ export default async function Page({
         <div>
           <p className="eyebrow">{t("Appearance & publication")}</p>
           <h1>{e.title}</h1>
+          <p className="intro">{t("Give the exhibition its look, then open it to the public.")}</p>
         </div>
       </div>
       <AdminNav id={id} />
