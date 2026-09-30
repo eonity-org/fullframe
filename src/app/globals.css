@@ -194,6 +194,12 @@ legend {
   color: var(--muted);
   font-size: 14px;
 }
+.language-note {
+  display: block;
+  margin-top: 6px;
+  color: var(--accent-dark);
+  font-size: 14px;
+}
 .intro {
   color: var(--muted);
   font-size: 17px;

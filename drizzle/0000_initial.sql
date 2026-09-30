@@ -41,6 +41,7 @@ CREATE TABLE `exhibitions` (
 	`subtitle` text,
 	`organization_id` text,
 	`organization_name` text,
+	`organization_slug` text,
 	`vault_hash` text,
 	`vault_url` text,
 	`vault_base_url` text,
@@ -61,7 +62,7 @@ CREATE TABLE `exhibitions` (
 	`updated_at` integer NOT NULL
 );
 --> statement-breakpoint
-CREATE UNIQUE INDEX `exhibitions_slug_unique` ON `exhibitions` (`slug`);--> statement-breakpoint
+CREATE UNIQUE INDEX `exhibitions_organization_slug` ON `exhibitions` (`organization_slug`,`slug`);--> statement-breakpoint
 CREATE TABLE `jurors` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`exhibition_id` integer NOT NULL,

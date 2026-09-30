@@ -8,14 +8,15 @@ import { Photograph } from "@/components/Photograph";
 import { useT } from "@/i18n/client";
 export function SelectionEditor({
   id,
-  slug,
+  base,
   phase,
   works,
   initial,
   averages,
 }: {
   id: number;
-  slug: string;
+  /** The exhibition's public path, `/{organization}/{exhibition}`. */
+  base: string;
   phase: string;
   works: GalleryWork[];
   initial: string[] | null;
@@ -68,7 +69,7 @@ export function SelectionEditor({
       {phase === "open" && (
         <div className="status ok">
           <strong>{t("Your exhibition is live.")}</strong>
-          <Link href={`/${slug}/salon`} target="_blank">
+          <Link href={`${base}/salon`} target="_blank">
             {t("Visit exhibition ↗")}
           </Link>
           <button

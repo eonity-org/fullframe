@@ -10,7 +10,8 @@ import { createHash, randomBytes } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { and, eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
+import { exhibitionPath, isExhibitionBase, isReservedOrganizationSlug } from "./paths";
 import { db, schema } from "@db/index";
 import {
   accessFor,
@@ -106,9 +107,10 @@ export async function logout(): Promise<void> {
 }
 
 /** A juror ends their session ("Quit voting") and returns to the exhibition. */
-export async function quitJury(exhibitionSlug: string): Promise<void> {
+/** `base` is the exhibition's public path (src/lib/paths.ts). */
+export async function quitJury(base: string): Promise<void> {
   (await cookies()).delete("ff_jury");
-  redirect(`/${exhibitionSlug}`);
+  redirect(isExhibitionBase(base) ? base : "/");
 }
 
 // ── Exhibitions ──────────────────────────────────────────────────────────────
@@ -125,6 +127,18 @@ export async function quitJury(exhibitionSlug: string): Promise<void> {
  *     keeps whatever was stored).
  */
 class ConnectionError extends Error {}
+
+/**
+ * The language the vault's photograph texts are written in — its ingest
+ * collection's, as TYDAL reports it (`es`, `pt-BR`…) — or null when TYDAL
+ * doesn't say (older backends, no ingest target). Only the primary subtag:
+ * FullFrame's locales are plain languages.
+ */
+function photoLanguage(meta: object): string | null {
+  // `language` is typed from @tydal/client's next release.
+  const language = (meta as { language?: string | null }).language;
+  return language ? language.split("-")[0].toLowerCase() : null;
+}
 
 async function discover(url: string, readKey: string, writeKey = "") {
   const t = await viewerT();
@@ -164,6 +178,14 @@ async function discover(url: string, readKey: string, writeKey = "") {
     throw new ConnectionError(
       t(
         "This vault does not allow photographs to be viewed. Enable image access in TYDAL.",
+      ),
+    );
+  // Its organization's slug heads the exhibition's public address.
+  if (meta.organization && isReservedOrganizationSlug(meta.organization))
+    throw new ConnectionError(
+      t(
+        "This vault’s organization is called “{slug}” in TYDAL, a name FullFrame keeps for its own pages. Rename the organization in TYDAL, then connect again.",
+        { slug: meta.organization },
       ),
     );
   // Whose vault this is — only a write key learns it (TYDAL's probe).
@@ -216,6 +238,7 @@ export async function previewConnection(
       name: meta.name,
       count: meta.resource_count,
       state: meta.state,
+      language: photoLanguage(meta),
     };
   } catch (e) {
     const t = await viewerT();
@@ -261,9 +284,15 @@ export async function createExhibition(formData: FormData): Promise<void> {
     if (detail) redirect(`/admin?error=vault&detail=${encodeURIComponent(detail)}`);
   }
   // Chosen when connecting (it sets the language authors and jurors see);
-  // the curator's own language otherwise. Editable later in the details.
+  // else the language the photographs' texts are written in, when FullFrame
+  // speaks it; else the curator's own. Editable later in the details.
   const chosen = String(formData.get("locale") || "");
-  const locale = isLocale(chosen) ? chosen : await viewerLocale();
+  const written = photoLanguage(meta);
+  const locale = isLocale(chosen)
+    ? chosen
+    : written && isLocale(written)
+      ? written
+      : await viewerLocale();
   const title = String(formData.get("title") || meta.name).trim();
   const proposed =
     String(formData.get("slug") || title)
@@ -276,11 +305,18 @@ export async function createExhibition(formData: FormData): Promise<void> {
     where: eq(schema.exhibitions.vaultHash, meta.hash),
   });
   if (duplicate) redirect(`/admin/${duplicate.id}?error=connected`);
+  // Unique within the organization: its address is /{organization}/{slug}.
+  const organizationSlug = meta.organization || null;
   let slug = proposed;
   for (
     let n = 2;
     await db.query.exhibitions.findFirst({
-      where: eq(schema.exhibitions.slug, slug),
+      where: and(
+        organizationSlug
+          ? eq(schema.exhibitions.organizationSlug, organizationSlug)
+          : isNull(schema.exhibitions.organizationSlug),
+        eq(schema.exhibitions.slug, slug),
+      ),
     });
     n++
   )
@@ -295,6 +331,7 @@ export async function createExhibition(formData: FormData): Promise<void> {
       vaultBaseUrl: baseUrl,
       organizationId: organization?.id ?? null,
       organizationName: organization?.name ?? null,
+      organizationSlug,
       phase: "setup",
       locale,
       appearance: DEFAULT_APPEARANCE,
@@ -353,7 +390,9 @@ export async function updateBinding(
         vaultBaseUrl: baseUrl,
         readVaultKey: encryptSecret(readKey),
         writeVaultKey: encryptSecret(writeKey),
-        // Same vault, so the same organization — filled in if it was unknown.
+        // Same vault, so the same organization — filled in if it was unknown,
+        // and its slug kept current (a rename in TYDAL moves the address).
+        ...(meta.organization ? { organizationSlug: meta.organization } : {}),
         ...(organization
           ? { organizationId: organization.id, organizationName: organization.name }
           : {}),
@@ -487,7 +526,7 @@ export async function setPhase(
       .set({ phase: target, openedAt: null, writebackAt: null })
       .where(eq(schema.exhibitions.id, exhibitionId));
     revalidatePath(`/admin/${exhibitionId}`, "layout");
-    revalidatePath(`/${exhibition.slug}`, "layout");
+    revalidatePath(exhibitionPath(exhibition), "layout");
     revalidatePath("/admin");
     return { ok: true };
   }
@@ -502,7 +541,7 @@ export async function setPhase(
     })
     .where(eq(schema.exhibitions.id, exhibitionId));
   revalidatePath(`/admin/${exhibitionId}`, "layout");
-  revalidatePath(`/${exhibition.slug}`, "layout");
+  revalidatePath(exhibitionPath(exhibition), "layout");
   revalidatePath("/admin");
   return { ok: true };
 }

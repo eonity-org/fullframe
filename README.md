@@ -20,7 +20,8 @@ See [DEPLOY.md](DEPLOY.md) for environment, backups and container networking, an
 
 ## The experience
 
-- **Mosaic:** Google Photos–style rows with narrow gaps and titles on hover or keyboard focus. A dedicated visitor view at `/{exhibition}/album`, with filtering. Photograph links in Mosaic and Gallery open Wall at the selected image; if Wall is disabled, photographs open in a lightbox instead.
+- **Addresses:** `/` lists every exhibition on view, `/{organization}` one TYDAL organization's, and an exhibition lives at `/{organization}/{exhibition}` (see DEPLOY.md, "Multi-exhibition").
+- **Mosaic:** Google Photos–style rows with narrow gaps and titles on hover or keyboard focus. A dedicated visitor view at `/{organization}/{exhibition}/album`, with filtering. Photograph links in Mosaic and Gallery open Wall at the selected image; if Wall is disabled, photographs open in a lightbox instead.
 - **Gallery:** uncropped photographs with visible captions, in flowing rows or uniform Grid cards. New exhibitions enter through Gallery by default.
 - **Exhibitions:** coloured, image-led posters use the exhibition palette and chosen cover, with a lightweight preview fetched independently for each collection.
 - **Wall:** one photograph at a time, with keyboard navigation, slideshow and optional details. The centered caption keeps a second line for credits and the details control; details expand subtly below the caption, with the image adjusting to the available height. Long metadata scrolls only within its allotted space. The counter and slideshow control share the same size and alignment. Work addresses use vault hashes.
@@ -28,7 +29,7 @@ See [DEPLOY.md](DEPLOY.md) for environment, backups and container networking, an
 - **Appearance:** choose the available visitor views (Mosaic, Gallery, Wall) and the default opened by “Enter the exhibition”. Disabled views redirect to that default. White Gallery, Dark Gallery or Editorial, independently paired with TYDAL's Blue, William, Plum, Graphite or Copper palette. Preview on the real gallery before applying. Studio and jury retain their own neutral interface.
 - **Studio:** connection, adding photographs during setup (no TYDAL account needed), exhibition details, optional jury, appearance, manual selection and publishing. Jury scores can inform selection; they are not required.
 - **Jury:** personal links, an overall impression score from 1 to 5 for new exhibitions, private notes and automatic saving. Existing criteria and votes are retained. Closing judging freezes edits.
-- **Languages:** English and Spanish. Each exhibition has its own language, set in its details; its public pages and jury use it, because the exhibition's own texts are written in it. The home page and the studio follow the viewer instead: their choice in the header, else the browser's language.
+- **Languages:** English and Spanish. Each exhibition has its own language, chosen when connecting (it defaults to the language TYDAL reports for the photographs' texts) and editable in its details; its public pages and jury use it, because the exhibition's own texts are written in it. The home page and the studio follow the viewer instead: their choice in the header, else the browser's language.
 
 ## Boundary and storage
 

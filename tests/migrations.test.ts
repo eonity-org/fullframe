@@ -30,6 +30,15 @@ test("a fresh database gets the whole schema, and re-running migrations is harml
     assert.ok(columns.includes("organization_id"));
     assert.ok(columns.includes("organization_name"));
     assert.ok(columns.includes("submissions") && columns.includes("submission_limit"));
+    assert.ok(columns.includes("organization_slug"));
+
+    // An exhibition slug is unique within its organization, not installation-wide.
+    const insert = db.prepare(
+      "insert into exhibitions (slug, title, organization_slug, created_at, updated_at) values (?, ?, ?, 0, 0)",
+    );
+    insert.run("semana-42", "Semana 42", "lucila");
+    insert.run("semana-42", "Semana 42", "otra");
+    assert.throws(() => insert.run("semana-42", "Again", "lucila"), /UNIQUE/);
     db.close();
   } finally {
     process.env.DATABASE_PATH = previous;

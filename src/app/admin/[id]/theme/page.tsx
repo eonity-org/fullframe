@@ -8,6 +8,7 @@ import { AppearancePicker } from "@/components/admin/AppearancePicker";
 import { AdminNav } from "@/components/admin/AdminNav";
 import { StageGuide } from "@/components/admin/StageGuide";
 import { viewerT } from "@/i18n/server";
+import { exhibitionPath } from "@/lib/paths";
 export const dynamic = "force-dynamic";
 export default async function Page({
   params,
@@ -43,7 +44,7 @@ export default async function Page({
       <StageGuide id={id} phase={e.phase} />
       <AppearancePicker
         id={id}
-        slug={e.slug}
+        base={exhibitionPath(e)}
         initial={resolveAppearance(e.appearance)}
       />
       </fieldset>

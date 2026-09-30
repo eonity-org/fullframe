@@ -9,14 +9,15 @@ import { GalleryNavigationLink, useGalleryAppearance } from "./ExhibitionStyle";
 import { useT } from "@/i18n/client";
 import { SiteFooter } from "./SiteFooter";
 export function ExhibitionGallery({
-  slug,
+  base,
   title,
   subtitle,
   works,
   mode = "salon",
   initialIndex = 0,
 }: {
-  slug: string;
+  /** The exhibition's public path, `/{organization}/{exhibition}`. */
+  base: string;
   title: string;
   subtitle?: string | null;
   works: GalleryWork[];
@@ -55,10 +56,10 @@ export function ExhibitionGallery({
         window.history.replaceState(
           null,
           "",
-          `/${slug}/wall/${works[n].id}${window.location.search}`,
+          `${base}/wall/${works[n].id}${window.location.search}`,
         );
     },
-    [mode, slug, works],
+    [mode, base, works],
   );
   useEffect(() => {
     if (!open) {
@@ -74,7 +75,7 @@ export function ExhibitionGallery({
   }, [open]);
   return (
     <div className={mode === "wall" ? "wall-page" : undefined}>
-      <GalleryHeader slug={slug} title={title} active={mode} />
+      <GalleryHeader base={base} title={title} active={mode} />
       {mode === "wall" ? (
         index < 0 ? (
           <main className="empty-state">
@@ -84,7 +85,7 @@ export function ExhibitionGallery({
             </p>
             <GalleryNavigationLink
               className="button"
-              href={`/${slug}/${defaultView}`}
+              href={`${base}/${defaultView}`}
             >
               {t("Return to the exhibition")}
             </GalleryNavigationLink>
@@ -161,7 +162,7 @@ export function ExhibitionGallery({
             </div>
           )}
           <PhotoCollection
-            slug={slug}
+            base={base}
             mode={mode}
             works={filtered}
             onOpen={(work) => {

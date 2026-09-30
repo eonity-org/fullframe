@@ -7,7 +7,7 @@ import { useT } from "@/i18n/client";
 type Criterion = { id: number; name: string; scaleMax: number };
 export function JuryRoom({
   title,
-  slug,
+  base,
   name,
   works,
   criteria,
@@ -16,7 +16,8 @@ export function JuryRoom({
   closed,
 }: {
   title: string;
-  slug: string;
+  /** The exhibition's public path, `/{organization}/{exhibition}`. */
+  base: string;
   name: string;
   works: GalleryWork[];
   criteria: Criterion[];
@@ -143,7 +144,7 @@ export function JuryRoom({
           className="quiet-button"
           disabled={pending}
           onClick={async () => {
-            if (await saveNote()) await quitJury(slug);
+            if (await saveNote()) await quitJury(base);
           }}
         >
           {t("Leave jury ↗")}

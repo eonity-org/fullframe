@@ -6,11 +6,12 @@ import {
 import { GALLERY_VIEWS } from "@/lib/appearance";
 import { useT } from "@/i18n/client";
 export function GalleryHeader({
-  slug,
+  base,
   title,
   active,
 }: {
-  slug: string;
+  /** The exhibition's public path, `/{organization}/{exhibition}`. */
+  base: string;
   title: string;
   active?: string;
 }) {
@@ -18,7 +19,7 @@ export function GalleryHeader({
   const t = useT();
   return (
     <header className="gallery-header">
-      <Link className="gallery-brand" href={`/${slug}`}>
+      <Link className="gallery-brand" href={`${base}`}>
         <span className="frame-mark" aria-hidden="true" />
         {title}
       </Link>
@@ -26,14 +27,14 @@ export function GalleryHeader({
         {enabledViews.map((view) => (
           <Link
             key={view}
-            href={`/${slug}/${view}`}
+            href={`${base}/${view}`}
             aria-current={active === view ? "page" : undefined}
           >
             {t(GALLERY_VIEWS[view].label)}
           </Link>
         ))}
         <Link
-          href={`/${slug}`}
+          href={`${base}`}
           aria-current={active === "about" ? "page" : undefined}
         >
           {t("About")}

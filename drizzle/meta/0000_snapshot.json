@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "afef91b3-32cc-4d1f-9883-241da4f168ca",
+  "id": "ad547ecb-8f98-4f94-be10-b58955ff441c",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "authors": {
@@ -293,6 +293,13 @@
           "notNull": false,
           "autoincrement": false
         },
+        "organization_slug": {
+          "name": "organization_slug",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
         "vault_hash": {
           "name": "vault_hash",
           "type": "text",
@@ -425,9 +432,10 @@
         }
       },
       "indexes": {
-        "exhibitions_slug_unique": {
-          "name": "exhibitions_slug_unique",
+        "exhibitions_organization_slug": {
+          "name": "exhibitions_organization_slug",
           "columns": [
+            "organization_slug",
             "slug"
           ],
           "isUnique": true

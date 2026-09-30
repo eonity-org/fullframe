@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import { eq } from "drizzle-orm";
 import { db, schema } from "@db/index";
 import { getExhibition } from "@/lib/exhibitions";
+import { exhibitionPath } from "@/lib/paths";
 import { currentJuror } from "@/lib/jury";
 import { loadGallery } from "@/lib/gallery";
 import { JuryRoom } from "@/components/jury/JuryRoom";
@@ -10,12 +11,13 @@ export const dynamic = "force-dynamic";
 export default async function Page({
   params,
 }: {
-  params: Promise<{ exhibition: string }>;
+  params: Promise<{ org: string; exhibition: string }>;
 }) {
-  const e = await getExhibition((await params).exhibition);
+  const { org, exhibition } = await params;
+  const e = await getExhibition(org, exhibition);
   if (!e) notFound();
   const juror = await currentJuror();
-  if (!juror || juror.exhibitionId !== e.id) redirect(`/${e.slug}`);
+  if (!juror || juror.exhibitionId !== e.id) redirect(exhibitionPath(e));
   const t = exhibitionT(e);
   // A juror can hold a link before the curator opens judging. Nothing to show
   // yet — the vault proxy refuses jurors until `judging` (see `jurorFor`).
@@ -29,7 +31,7 @@ export default async function Page({
             { title: e.title },
           )}
         </p>
-        <a className="button" href={`/${e.slug}/jury`}>
+        <a className="button" href={exhibitionPath(e, "jury")}>
           {t("Check again")}
         </a>
       </main>
@@ -61,7 +63,7 @@ export default async function Page({
             "We couldn’t reach the photographs. Please try again in a moment.",
           )}
         </p>
-        <a className="button" href={`/${e.slug}/jury`}>
+        <a className="button" href={exhibitionPath(e, "jury")}>
           {t("Try again")}
         </a>
       </main>
@@ -69,7 +71,7 @@ export default async function Page({
   return (
     <JuryRoom
       title={e.title}
-      slug={e.slug}
+      base={exhibitionPath(e)}
       name={juror.name}
       works={gallery.works}
       criteria={criteria.map((c) => ({

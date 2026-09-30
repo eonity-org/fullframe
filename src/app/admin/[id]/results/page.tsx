@@ -11,6 +11,7 @@ import { StageGuide } from "@/components/admin/StageGuide";
 import { SelectionEditor } from "@/components/admin/SelectionEditor";
 import { ExhibitionDetails } from "@/components/admin/ExhibitionDetails";
 import { viewerT } from "@/i18n/server";
+import { exhibitionPath } from "@/lib/paths";
 export const dynamic = "force-dynamic";
 export default async function Page({
   params,
@@ -71,7 +72,7 @@ export default async function Page({
       {gallery ? (
         <SelectionEditor
           id={id}
-          slug={e.slug}
+          base={exhibitionPath(e)}
           phase={e.phase}
           works={gallery.works}
           initial={e.selectedHashes}

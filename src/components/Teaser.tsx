@@ -1,11 +1,18 @@
 "use client";
 import Link from "next/link";
 import { useT } from "@/i18n/client";
-export function Teaser({ title }: { title: string }) {
+/** `directory` is where the logo leads: the exhibition's organization. */
+export function Teaser({
+  title,
+  directory = "/",
+}: {
+  title: string;
+  directory?: string;
+}) {
   const t = useT();
   return (
     <main className="teaser">
-      <Link className="wordmark" href="/">
+      <Link className="wordmark" href={directory}>
         FullFrame
         <span className="frame-mark" />
       </Link>

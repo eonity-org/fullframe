@@ -20,6 +20,7 @@ import { authorUrl, submittedBy } from "@/lib/authors";
 import { photoDetails, uploadAccess, UPLOAD_ACCESS_NOTES } from "@/lib/uploads";
 import { Photograph } from "@/components/Photograph";
 import { viewerT } from "@/i18n/server";
+import { exhibitionPath } from "@/lib/paths";
 export const dynamic = "force-dynamic";
 export default async function Page({
   params,
@@ -79,7 +80,7 @@ export default async function Page({
           <p className="eyebrow">{t("Exhibition setup")}</p>
           <h1>{e.title}</h1>
         </div>
-        <Link className="button" href={`/${e.slug}/salon`} target="_blank">
+        <Link className="button" href={exhibitionPath(e, "salon")} target="_blank">
           {t("Preview exhibition ↗")}
         </Link>
       </div>
