@@ -916,6 +916,9 @@ export async function openExhibition(exhibitionId: number): Promise<void> {
       openedAt: new Date(),
       writebackAt: new Date(),
       scoringRecord,
+      // Publishing straight from preparing ends a submission period still
+      // open, as leaving setup any other way does (setPhase).
+      ...(exhibition.submissions === "open" ? { submissions: "closed" as const } : {}),
     })
     .where(eq(schema.exhibitions.id, exhibitionId));
 

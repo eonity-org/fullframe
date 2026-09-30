@@ -2,9 +2,9 @@
 
 /**
  * The stage bar's one forward move (StageBar.tsx): close judging, publish —
- * only on Appearance & publish, so the style is always seen before opening —
- * or, once live, visit and close the exhibition. Publishing and closing ask
- * first.
+ * only on Appearance & publish, so the style is always seen before opening,
+ * and from preparing too (the jury is optional) — or, once live, visit and
+ * close the exhibition. Publishing and closing ask first.
  */
 import Link from "next/link";
 import { useState, useTransition } from "react";
@@ -67,7 +67,9 @@ export function StageActions({
       </div>
     );
 
-  if (phase !== "selection" && phase !== "open") return null;
+  // Preparing: publishing is still possible (no jury), but only where the
+  // style is chosen; the other tabs keep the bar quiet.
+  if (phase === "setup" && page !== "publish") return null;
 
   const live = phase === "open";
   return (
