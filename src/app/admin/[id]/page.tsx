@@ -122,7 +122,9 @@ export default async function Page({
           // In setup the panel itself says the period is closed.
           setup
             ? undefined
-            : t("Submissions are only possible while you prepare the exhibition.")
+            : e.phase === "selection"
+              ? t("Submissions are only possible while you prepare the exhibition. To reopen them, use Back to preparing in the Photographs step.")
+              : t("Submissions are only possible while you prepare the exhibition.")
         }
       >
         {setup && (
@@ -131,6 +133,7 @@ export default async function Page({
             state={e.submissions}
             limit={e.submissionLimit}
             canOpen={upload === "ready"}
+            blockedNote={upload === "ready" ? null : t(UPLOAD_ACCESS_NOTES[upload])}
             authors={authors.map((a) => ({
               id: a.id,
               name: a.name,

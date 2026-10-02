@@ -2889,7 +2889,7 @@ details[open] > summary {
 /* Box 1: the submission period. */
 .submission-controls {
   display: flex;
-  align-items: end;
+  align-items: flex-end;
   justify-content: space-between;
   gap: 16px 24px;
   flex-wrap: wrap;
@@ -2947,7 +2947,7 @@ details[open] > summary {
 .invite-form {
   display: flex;
   flex-wrap: wrap;
-  align-items: end;
+  align-items: flex-end;
   gap: 8px 12px;
   margin-top: 20px;
 }

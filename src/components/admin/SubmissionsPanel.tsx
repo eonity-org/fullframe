@@ -34,6 +34,7 @@ export function SubmissionsPanel({
   state,
   limit,
   canOpen,
+  blockedNote,
   authors,
 }: {
   exhibitionId: number;
@@ -41,6 +42,8 @@ export function SubmissionsPanel({
   limit: number;
   /** Submissions can be opened now (setup, with a working write key). */
   canOpen: boolean;
+  /** Why it can't, already translated (no write key, TYDAL unreachable…). */
+  blockedNote: string | null;
   authors: AuthorRow[];
 }) {
   const t = useT();
@@ -126,6 +129,10 @@ export function SubmissionsPanel({
             ? t("Closed: authors can no longer send photographs. Their links keep working if you reopen.")
             : t("Invite authors, then open submissions so they can send photographs — or skip this step.")}
       </p>
+      {/* A disabled Open button always says why. */}
+      {state !== "open" && (!canOpen || !invited) && (
+        <p className="hint">{blockedNote ?? t("Invite an author first.")}</p>
+      )}
       {error && <p className="error">{error}</p>}
 
       {authors.length > 0 && (

@@ -134,10 +134,8 @@ class ConnectionError extends Error {}
  * doesn't say (older backends, no ingest target). Only the primary subtag:
  * FullFrame's locales are plain languages.
  */
-function photoLanguage(meta: object): string | null {
-  // `language` is typed from @tydal/client's next release.
-  const language = (meta as { language?: string | null }).language;
-  return language ? language.split("-")[0].toLowerCase() : null;
+function photoLanguage(meta: { language?: string | null }): string | null {
+  return meta.language ? meta.language.split("-")[0].toLowerCase() : null;
 }
 
 async function discover(url: string, readKey: string, writeKey = "") {
@@ -196,10 +194,7 @@ async function discover(url: string, readKey: string, writeKey = "") {
       vault: { hash: meta.hash },
       key: writeKey,
     });
-    // `organization` is typed from @tydal/client's next release.
-    let caps: Awaited<ReturnType<typeof writer.writeCapabilities>> & {
-      organization?: { id: string; slug: string; name: string } | null;
-    };
+    let caps: Awaited<ReturnType<typeof writer.writeCapabilities>>;
     try {
       caps = await writer.writeCapabilities();
     } catch {

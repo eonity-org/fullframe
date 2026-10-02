@@ -1,5 +1,5 @@
 import "server-only";
-import { TydalApiError, type VaultWriteCapabilities } from "@tydal/client";
+import { TydalApiError } from "@tydal/client";
 import { vaultFor, writeConsumerFor } from "./tydal";
 import { decryptSecret } from "./crypto";
 import type { Exhibition } from "./exhibitions";
@@ -35,10 +35,7 @@ export async function uploadAccess(exhibition: Exhibition): Promise<{
   if (!exhibition.vaultHash || !decryptSecret(exhibition.writeVaultKey))
     return { access: "no-key", ...none };
   try {
-    // `max_upload_bytes` is typed from @tydal/client's next release.
-    const caps = (await writeConsumerFor(exhibition).writeCapabilities()) as VaultWriteCapabilities & {
-      max_upload_bytes?: number;
-    };
+    const caps = await writeConsumerFor(exhibition).writeCapabilities();
     const methods = caps.methods ?? [];
     const ready = ["ingest", "update", "withdraw"].every((m) => methods.includes(m));
     return {
