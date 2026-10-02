@@ -484,16 +484,20 @@ legend {
   align-items: center;
   gap: 6px;
 }
-/* The simplified black TYDAL logo (144 × 64) used as a mask: only its shape
-   counts, painted in the surrounding text colour — light on Dark Gallery,
-   the ink on Editorial — with no per-theme filters. */
+/* The simplified TYDAL logo for small sizes (144 × 64, shown 36 × 16):
+   monochrome #0A5475, swapped for the white variant on Dark Gallery, where
+   the blue would be too dark to read. */
 .tydal-mark {
   display: block;
   height: 16px;
-  width: 36px;
-  background-color: currentColor;
-  -webkit-mask: url("/tydal-logo.png") center / contain no-repeat;
-  mask: url("/tydal-logo.png") center / contain no-repeat;
+  width: auto;
+}
+.tydal-mark-white,
+[data-theme="dark"] .tydal-mark {
+  display: none;
+}
+[data-theme="dark"] .tydal-mark-white {
+  display: block;
 }
 .image-unavailable {
   display: flex;

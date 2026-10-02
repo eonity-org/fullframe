@@ -20,6 +20,7 @@ export const RESERVED_ORGANIZATION_SLUGS = [
   "sitemap.xml",
   "favicon.ico",
   "tydal-logo.png",
+  "tydal-logo-white.png",
 ] as const;
 
 export function isReservedOrganizationSlug(slug: string): boolean {

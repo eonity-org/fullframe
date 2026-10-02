@@ -43,9 +43,17 @@ export function SiteFooter({
                 rel="noopener noreferrer"
                 title={t("TYDAL on GitHub")}
               >
-                {/* The black logo as a stencil in the text colour, so it
-                    matches the footer in every theme (globals.css). */}
-                <span className="tydal-mark" role="img" aria-label="TYDAL" />
+                {/* The simplified logo for small sizes: monochrome blue, or
+                    white on the Dark Gallery theme (globals.css). */}
+                <img className="tydal-mark" src="/tydal-logo.png" alt="TYDAL" width={36} height={16} />
+                <img
+                  className="tydal-mark tydal-mark-white"
+                  src="/tydal-logo-white.png"
+                  alt=""
+                  aria-hidden="true"
+                  width={36}
+                  height={16}
+                />
               </a>
             ),
           })}
