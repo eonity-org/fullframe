@@ -5,10 +5,11 @@
   --ink: #202b2c;
   --muted: #626d6c;
   --line: #dedfda;
-  /* TYDAL logo blue (#1a5d7b; the lighter logo blues fail contrast for text). */
-  --accent: #1a5d7b;
-  --accent-dark: #134760;
-  --accent-soft: #e5f0f5;
+  /* TYDAL's theme blues (frontend ThemeContext): the logo's large ball, a
+     derived dark (the wordmark #0A5475 is too close for hover) and a tint. */
+  --accent: #1a5d7d;
+  --accent-dark: #08435e;
+  --accent-soft: #e8f2f7;
   --media: #f1f1ef;
   --font: "DM Sans", system-ui, sans-serif;
   --display: "Manrope", system-ui, sans-serif;
@@ -483,13 +484,16 @@ legend {
   align-items: center;
   gap: 6px;
 }
-.footer-powered img {
+/* The simplified black TYDAL logo (144 × 64) used as a mask: only its shape
+   counts, painted in the surrounding text colour — light on Dark Gallery,
+   the ink on Editorial — with no per-theme filters. */
+.tydal-mark {
   display: block;
   height: 16px;
-  width: auto;
-}
-[data-theme="dark"] .footer-powered img {
-  filter: brightness(1.7) saturate(0.8);
+  width: 36px;
+  background-color: currentColor;
+  -webkit-mask: url("/tydal-logo.png") center / contain no-repeat;
+  mask: url("/tydal-logo.png") center / contain no-repeat;
 }
 .image-unavailable {
   display: flex;
@@ -884,10 +888,11 @@ legend {
   --ink: #223031;
   --muted: #647070;
   --line: #dce1dd;
-  /* TYDAL logo blue (#1a5d7b; the lighter logo blues fail contrast for text). */
-  --accent: #1a5d7b;
-  --accent-dark: #134760;
-  --accent-soft: #e5f0f5;
+  /* TYDAL's theme blues (frontend ThemeContext): the logo's large ball, a
+     derived dark (the wordmark #0A5475 is too close for hover) and a tint. */
+  --accent: #1a5d7d;
+  --accent-dark: #08435e;
+  --accent-soft: #e8f2f7;
   --media: #f1f1ef;
   --display: "Manrope", system-ui, sans-serif;
   min-height: 100dvh;
@@ -1021,8 +1026,8 @@ legend {
   border-color: var(--accent);
 }
 .phase-pill.judging {
-  color: #1a5d7b;
-  background: #e5f0f5;
+  color: var(--accent);
+  background: var(--accent-soft);
   border-color: #b9d4e1;
 }
 .section-heading {
@@ -2153,7 +2158,7 @@ details[open] > summary {
 }
 .exhibition-tile[data-palette="blue"] {
   --poster: #c5dce8;
-  --poster-ink: #0f3a4e;
+  --poster-ink: #08435e;
 }
 .exhibition-tile[data-palette="plum"] {
   --poster: #c6b7cf;

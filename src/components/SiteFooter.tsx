@@ -43,7 +43,9 @@ export function SiteFooter({
                 rel="noopener noreferrer"
                 title={t("TYDAL on GitHub")}
               >
-                <img src="/tydal-logo.png" alt="TYDAL" width={39} height={16} />
+                {/* The black logo as a stencil in the text colour, so it
+                    matches the footer in every theme (globals.css). */}
+                <span className="tydal-mark" role="img" aria-label="TYDAL" />
               </a>
             ),
           })}
