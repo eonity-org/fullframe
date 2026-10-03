@@ -3,6 +3,7 @@ import { galleryImages } from "@/lib/galleryImages";
 import { proxyVaultUrl } from "@/lib/vaultUrls";
 import type { Exhibition } from "@/lib/exhibitions";
 import { Photograph } from "./Photograph";
+import { FrameMark } from "./FrameMark";
 
 /** A cover needs one card, never a scan of every photograph in the exhibition. */
 export async function ExhibitionCover({
@@ -53,7 +54,7 @@ export async function ExhibitionCover({
   }
   return (
     <span className="cover-placeholder" aria-hidden="true">
-      <span className="frame-mark" />
+      <FrameMark />
     </span>
   );
 }

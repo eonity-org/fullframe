@@ -5,6 +5,7 @@ import { accessFor, managedOrganizations, studioSession } from "@/lib/admin";
 import { logout } from "@/lib/actions";
 import { ConnectionForm } from "@/components/admin/ConnectionForm";
 import { viewerT } from "@/i18n/server";
+import { studioPath } from "@/lib/paths";
 export const dynamic = "force-dynamic";
 export default async function Page({
   searchParams,
@@ -61,7 +62,7 @@ export default async function Page({
           <Link
             className="studio-exhibition"
             key={e.id}
-            href={`/admin/${e.id}`}
+            href={studioPath(e)}
           >
             <div className="section-heading">
               <span className={`phase-pill ${e.phase}`}>

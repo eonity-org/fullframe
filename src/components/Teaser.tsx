@@ -1,14 +1,19 @@
 "use client";
 import Link from "next/link";
 import { useT } from "@/i18n/client";
-export function Teaser({ title }: { title: string }) {
+import { HeaderTrail, type HeaderLevel } from "./HeaderTrail";
+/** `organization` is the header trail's level after FullFrame. */
+export function Teaser({
+  title,
+  organization,
+}: {
+  title: string;
+  organization: HeaderLevel;
+}) {
   const t = useT();
   return (
     <main className="teaser">
-      <Link className="wordmark" href="/">
-        FullFrame
-        <span className="frame-mark" />
-      </Link>
+      <HeaderTrail organization={organization} />
       <div>
         <p className="eyebrow">{t("Coming into view")}</p>
         <h1>{title}</h1>

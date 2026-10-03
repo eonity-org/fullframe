@@ -1,9 +1,97 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "d1f36d19-07d9-4d8f-b630-5c2d3e507775",
+  "id": "ad547ecb-8f98-4f94-be10-b58955ff441c",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
+    "authors": {
+      "name": "authors",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "exhibition_id": {
+          "name": "exhibition_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "token_hash": {
+          "name": "token_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "token": {
+          "name": "token",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "revoked_at": {
+          "name": "revoked_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "authors_token_hash_unique": {
+          "name": "authors_token_hash_unique",
+          "columns": [
+            "token_hash"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "authors_exhibition_id_exhibitions_id_fk": {
+          "name": "authors_exhibition_id_exhibitions_id_fk",
+          "tableFrom": "authors",
+          "tableTo": "exhibitions",
+          "columnsFrom": [
+            "exhibition_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
     "comments": {
       "name": "comments",
       "columns": {
@@ -205,6 +293,13 @@
           "notNull": false,
           "autoincrement": false
         },
+        "organization_slug": {
+          "name": "organization_slug",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
         "vault_hash": {
           "name": "vault_hash",
           "type": "text",
@@ -261,6 +356,22 @@
           "notNull": true,
           "autoincrement": false,
           "default": "'setup'"
+        },
+        "submissions": {
+          "name": "submissions",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'pending'"
+        },
+        "submission_limit": {
+          "name": "submission_limit",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 5
         },
         "locale": {
           "name": "locale",
@@ -321,9 +432,10 @@
         }
       },
       "indexes": {
-        "exhibitions_slug_unique": {
-          "name": "exhibitions_slug_unique",
+        "exhibitions_organization_slug": {
+          "name": "exhibitions_organization_slug",
           "columns": [
+            "organization_slug",
             "slug"
           ],
           "isUnique": true
@@ -417,6 +529,73 @@
           "tableTo": "exhibitions",
           "columnsFrom": [
             "exhibition_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "submissions": {
+      "name": "submissions",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "author_id": {
+          "name": "author_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "resource_hash": {
+          "name": "resource_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "submissions_resource_hash_unique": {
+          "name": "submissions_resource_hash_unique",
+          "columns": [
+            "resource_hash"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "submissions_author_id_authors_id_fk": {
+          "name": "submissions_author_id_authors_id_fk",
+          "tableFrom": "submissions",
+          "tableTo": "authors",
+          "columnsFrom": [
+            "author_id"
           ],
           "columnsTo": [
             "id"

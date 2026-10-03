@@ -8,9 +8,9 @@ export function AdminNav({ id }: { id: number }) {
   return (
     <nav className="admin-tabs" aria-label={t("Manage exhibition")}>
       {[
-        ["", t("Overview")],
-        ["/theme", t("Appearance")],
-        ["/results", t("Selection & publish")],
+        ["", t("Setup")],
+        ["/results", t("Selection")],
+        ["/publish", t("Appearance & publish")],
       ].map(([suffix, label]) => (
         <Link
           key={suffix}

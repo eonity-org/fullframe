@@ -8,6 +8,8 @@ import { db, schema } from '@db/index';
 import { createJurySession, jurorFromToken } from '@/lib/jury';
 import { clientIp, rateLimit, tooManyRequests } from '@/lib/rateLimit';
 import { log } from '@/lib/log';
+import { withOrganizationSlug } from '@/lib/exhibitions';
+import { exhibitionPath } from '@/lib/paths';
 
 export async function GET(
   request: Request,
@@ -46,6 +48,6 @@ export async function GET(
   // internal hostname when running the standalone server.
   return new Response(null, {
     status: 303,
-    headers: { Location: `/${encodeURIComponent(exhibition.slug)}/jury` },
+    headers: { Location: exhibitionPath(await withOrganizationSlug(exhibition), 'jury') },
   });
 }

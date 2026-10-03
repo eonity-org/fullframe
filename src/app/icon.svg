@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none">
+  <style>
+    .frame { stroke: #202b2c; }
+    .view { stroke: #1a5d7d; }
+    @media (prefers-color-scheme: dark) {
+      .frame { stroke: #dadbd4; }
+      .view { stroke: #5295b3; }
+    }
+  </style>
+  <rect class="frame" x="2" y="2" width="28" height="28" stroke-width="4"/>
+  <path class="view" d="M9 10.5H21.5V23" stroke-width="3"/>
+</svg>

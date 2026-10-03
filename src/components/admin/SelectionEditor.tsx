@@ -1,21 +1,18 @@
 "use client";
 import Link from "next/link";
 import { useState, useTransition } from "react";
-import { openExhibition, saveCuratedSelection, setPhase } from "@/lib/actions";
+import { saveCuratedSelection } from "@/lib/actions";
 import type { GalleryWork } from "@/lib/gallery";
-import { ConfirmationDialog } from "./ConfirmationDialog";
 import { Photograph } from "@/components/Photograph";
 import { useT } from "@/i18n/client";
 export function SelectionEditor({
   id,
-  slug,
   phase,
   works,
   initial,
   averages,
 }: {
   id: number;
-  slug: string;
   phase: string;
   works: GalleryWork[];
   initial: string[] | null;
@@ -28,7 +25,6 @@ export function SelectionEditor({
   const [saved, setSaved] = useState(initial);
   const [pending, start] = useTransition();
   const [error, setError] = useState("");
-  const [confirm, setConfirm] = useState(false);
   const dirty =
     !saved ||
     saved.length !== selected.size ||
@@ -54,34 +50,15 @@ export function SelectionEditor({
   );
   return (
     <>
-      {phase === "judging" && (
-        <div className="status">
-          {t("The jury is still scoring.")}{" "}
-          <button
-            onClick={() => run(() => setPhase(id, "selection"))}
-            disabled={pending}
-          >
-            {t("Close judging to select photographs")}
-          </button>
-        </div>
-      )}
-      {phase === "open" && (
-        <div className="status ok">
-          <strong>{t("Your exhibition is live.")}</strong>
-          <Link href={`/${slug}/salon`} target="_blank">
-            {t("Visit exhibition ↗")}
-          </Link>
-          <button
-            disabled={pending}
-            onClick={() => {
-              setError("");
-              setConfirm(true);
-            }}
-          >
-            {t("Close exhibition")}
-          </button>
-        </div>
-      )}
+      {/* The photographs in a white panel of their own, like the details above. */}
+      <section className="panel selection-panel">
+      <div className="selection-heading">
+        <p className="eyebrow">{t("The photographs")}</p>
+        <h2>{t("Choose what to exhibit")}</h2>
+        <p className="muted">
+          {t("Only the photographs you select go into the public exhibition.")}
+        </p>
+      </div>
       <div className="collection-toolbar">
         <span>
           {t.rich("{selected} of {total} selected", {
@@ -145,7 +122,8 @@ export function SelectionEditor({
           {t("There are no photographs to select.")}
         </p>
       )}
-      {error && !confirm && (
+      </section>
+      {error && (
         <p role="alert" className="error">
           {error}
         </p>
@@ -175,70 +153,19 @@ export function SelectionEditor({
             >
               {pending ? t("Saving…") : t("Save selection")}
             </button>
-            <button
-              className="primary"
-              disabled={dirty || !selected.size || pending}
-              onClick={() => {
-                setError("");
-                setConfirm(true);
-              }}
-            >
-              {t("Publish exhibition ↗")}
-            </button>
+            {/* Publishing is on the next tab, so the style is always seen first. */}
+            {dirty || !selected.size ? (
+              <button className="primary" disabled>
+                {t("Next: appearance & publish →")}
+              </button>
+            ) : (
+              <Link className="button primary" href={`/admin/${id}/publish`}>
+                {t("Next: appearance & publish →")}
+              </Link>
+            )}
           </div>
         </div>
       )}
-      <ConfirmationDialog
-        open={confirm}
-        pending={pending}
-        onCancel={() => setConfirm(false)}
-        title={
-          phase === "open"
-            ? t("Close this exhibition?")
-            : t("Ready to open the doors?")
-        }
-      >
-        <p>
-          {phase === "open"
-            ? t(
-                "The public gallery will close and TYDAL will restore the full submission set.",
-              )
-            : t.n(
-                selected.size,
-                "{count} photograph will become public. Jury scoring will be closed.",
-                "{count} photographs will become public. Jury scoring will be closed.",
-              )}
-        </p>
-        {error && (
-          <p role="alert" className="error">
-            {error}
-          </p>
-        )}
-        <div className="button-row">
-          <button disabled={pending} onClick={() => setConfirm(false)}>
-            {t("Cancel")}
-          </button>
-          <button
-            className="primary"
-            disabled={pending}
-            onClick={() =>
-              run(async () => {
-                if (phase === "open") {
-                  const result = await setPhase(id, "selection");
-                  if ("error" in result) return result;
-                  setConfirm(false);
-                } else await openExhibition(id);
-              })
-            }
-          >
-            {pending
-              ? t("Updating…")
-              : phase === "open"
-                ? t("Close exhibition")
-                : t("Publish now")}
-          </button>
-        </div>
-      </ConfirmationDialog>
     </>
   );
 }

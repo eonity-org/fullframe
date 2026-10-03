@@ -265,10 +265,28 @@ user replaces the container's non-root user.
 
 ## Multi-exhibition
 
-One instance hosts many exhibitions — routing is path-based
-(`/{exhibition}`), each bound to its own vault in the backoffice. No config
-per exhibition beyond creating it. (Host-based routing, if wanted, is a
-reverse-proxy concern in front of the single app.)
+One instance hosts many exhibitions from many TYDAL organizations — routing
+is path-based, each exhibition bound to its own vault in the backoffice. No
+config per exhibition beyond creating it. (Host-based routing, if wanted, is
+a reverse-proxy concern in front of the single app.)
+
+| Address | Shows |
+|---|---|
+| `/` | every exhibition on view, from every organization |
+| `/{organization}` | one organization's exhibitions on view |
+| `/{organization}/{exhibition}[/album\|salon\|wall\|jury]` | one exhibition |
+
+`{organization}` is the TYDAL organization's slug, read from the vault when
+it's connected (and kept current when the connection is edited, so renaming
+the organization in TYDAL moves the address). An exhibition slug is unique
+within its organization. A vault from an organization whose slug is one of
+FullFrame's own first path segments — `admin`, `api`, `e`, `j` and a few
+files (`src/lib/paths.ts`) — is refused; rename the organization in TYDAL.
+
+Addresses from before organizations were in the URL (`/{exhibition}/…`)
+redirect permanently to the new ones while the exhibition slug is
+unambiguous; an exhibition connected before then learns its organization's
+slug from its vault on its first such visit.
 
 ## Backups
 

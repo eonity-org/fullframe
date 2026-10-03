@@ -7,16 +7,16 @@ import { loadGallery } from "@/lib/gallery";
 import { rawVotes } from "@/lib/votesData";
 import { computeScores } from "@/lib/scoring";
 import { AdminNav } from "@/components/admin/AdminNav";
-import { StageGuide } from "@/components/admin/StageGuide";
+import { StageBar } from "@/components/admin/StageBar";
 import { SelectionEditor } from "@/components/admin/SelectionEditor";
+import { ExhibitionDetails } from "@/components/admin/ExhibitionDetails";
 import { viewerT } from "@/i18n/server";
+import { exhibitionPath } from "@/lib/paths";
 export const dynamic = "force-dynamic";
 export default async function Page({
   params,
-  searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ error?: string; detail?: string }>;
 }) {
   const id = Number((await params).id);
   const e = await db.query.exhibitions.findFirst({
@@ -25,7 +25,6 @@ export default async function Page({
   if (!e) notFound();
   const access = await requireStudioAccess(e);
   const t = await viewerT();
-  const { error, detail } = await searchParams;
   let gallery: Awaited<ReturnType<typeof loadGallery>> | null = null;
   try {
     gallery = await loadGallery(e);
@@ -46,7 +45,7 @@ export default async function Page({
       </Link>
       <div className="page-heading">
         <div>
-          <p className="eyebrow">{t("Selection & publication")}</p>
+          <p className="eyebrow">{t("Selection")}</p>
           <h1>{e.title}</h1>
           <p className="intro">
             {t("Choose the photographs that tell your story.")}
@@ -54,22 +53,17 @@ export default async function Page({
         </div>
       </div>
       <AdminNav id={id} />
-      {/* Judging and live already have their own banner with the action. */}
-      {(e.phase === "setup" || e.phase === "selection") && (
-        <StageGuide id={id} phase={e.phase} />
-      )}
-      {error && (
-        <p className="error" role="alert">
-          {detail ||
-            t(
-              "The exhibition could not be published. Save a selection and check the vault connection.",
-            )}
-        </p>
-      )}
+      <StageBar
+        id={id}
+        phase={e.phase}
+        page="selection"
+        selected={e.selectedHashes?.length ?? null}
+        base={exhibitionPath(e)}
+      />
+      <ExhibitionDetails exhibition={e} works={gallery?.works ?? []} />
       {gallery ? (
         <SelectionEditor
           id={id}
-          slug={e.slug}
           phase={e.phase}
           works={gallery.works}
           initial={e.selectedHashes}
@@ -78,7 +72,7 @@ export default async function Page({
       ) : (
         <div className="empty-state">
           <h2>{t("Photographs couldn’t be loaded.")}</h2>
-          <p>{t("Check the connection in Overview, then try again.")}</p>
+          <p>{t("Check the connection in Setup, then try again.")}</p>
         </div>
       )}
       {ranked.length > 0 && (
