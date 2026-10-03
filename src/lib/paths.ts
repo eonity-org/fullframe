@@ -54,15 +54,19 @@ export function organizationPath(slug: string): string {
 }
 
 /**
- * Where the FullFrame logo leads from inside an exhibition: its
- * organization's directory, else (organization unknown yet) the global one.
+ * An exhibition's organization as a header trail level: its directory and
+ * name. Unknown yet (no slug), it has no label and the level is left out.
  */
-export function directoryPathFor(exhibition: {
+export function organizationLink(exhibition: {
   organizationSlug?: string | null;
-}): string {
+  organizationName?: string | null;
+}): { href: string; label: string | null } {
   return exhibition.organizationSlug
-    ? organizationPath(exhibition.organizationSlug)
-    : "/";
+    ? {
+        href: organizationPath(exhibition.organizationSlug),
+        label: exhibition.organizationName || exhibition.organizationSlug,
+      }
+    : { href: "/", label: null };
 }
 
 /** A path `exhibitionPath` could have produced — safe to redirect to. */

@@ -1,10 +1,10 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import {
-  directoryPathFor,
   exhibitionPath,
   isExhibitionBase,
   isReservedOrganizationSlug,
+  organizationLink,
   organizationPath,
 } from "../src/lib/paths";
 
@@ -33,7 +33,19 @@ test("only an exhibition path is accepted as a redirect target", () => {
     assert.ok(!isExhibitionBase(path), path);
 });
 
-test("inside an exhibition the logo leads to its organization's directory", () => {
-  assert.equal(directoryPathFor({ organizationSlug: "lucila" }), "/lucila");
-  assert.equal(directoryPathFor({ organizationSlug: null }), "/");
+test("an exhibition names its organization in the header trail", () => {
+  assert.deepEqual(
+    organizationLink({ organizationSlug: "lucila", organizationName: "Lucila" }),
+    { href: "/lucila", label: "Lucila" },
+  );
+  // Name not stored yet: the slug names it.
+  assert.deepEqual(organizationLink({ organizationSlug: "lucila" }), {
+    href: "/lucila",
+    label: "lucila",
+  });
+  // Organization unknown: no level.
+  assert.deepEqual(organizationLink({ organizationSlug: null }), {
+    href: "/",
+    label: null,
+  });
 });

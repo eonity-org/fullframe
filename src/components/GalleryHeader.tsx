@@ -5,25 +5,27 @@ import {
 } from "./ExhibitionStyle";
 import { GALLERY_VIEWS } from "@/lib/appearance";
 import { useT } from "@/i18n/client";
-import { FrameMark } from "./FrameMark";
+import { HeaderTrail, type HeaderLevel } from "./HeaderTrail";
 export function GalleryHeader({
   base,
   title,
+  organization,
   active,
 }: {
   /** The exhibition's public path, `/{organization}/{exhibition}`. */
   base: string;
   title: string;
+  /** Its organization, the trail's middle level. */
+  organization: HeaderLevel;
   active?: string;
 }) {
   const { enabledViews } = useGalleryAppearance();
   const t = useT();
   return (
     <header className="gallery-header">
-      <Link className="gallery-brand" href={`${base}`}>
-        <FrameMark />
-        {title}
-      </Link>
+      <HeaderTrail organization={organization}>
+        <Link href={`${base}`}>{title}</Link>
+      </HeaderTrail>
       <nav aria-label={t("Exhibition")}>
         {enabledViews.map((view) => (
           <Link

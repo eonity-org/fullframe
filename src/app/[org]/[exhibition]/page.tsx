@@ -4,7 +4,7 @@ import {
 } from "@/components/ExhibitionEntryLinks";
 import { notFound, permanentRedirect } from "next/navigation";
 import { canView, getExhibition, legacyAddress } from "@/lib/exhibitions";
-import { directoryPathFor, exhibitionPath } from "@/lib/paths";
+import { exhibitionPath, organizationLink } from "@/lib/paths";
 import { loadGallery } from "@/lib/gallery";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
@@ -38,7 +38,7 @@ export default async function Page({
     if (moved) permanentRedirect(moved);
     notFound();
   }
-  if (!(await canView(e))) return <Teaser title={e.title} directory={directoryPathFor(e)} />;
+  if (!(await canView(e))) return <Teaser title={e.title} organization={organizationLink(e)} />;
   let works: Awaited<ReturnType<typeof loadGallery>>["works"] = [];
   try {
     works = (await loadGallery(e)).works;
@@ -49,7 +49,7 @@ export default async function Page({
   const cover = works.find((w) => w.preview === e.coverImage) || works[0];
   return (
     <>
-      <SiteHeader directory={directoryPathFor(e)} />
+      <SiteHeader organization={organizationLink(e)} current={e.title} />
       <main className="welcome-page">
         <div className="welcome-copy">
           <p className="eyebrow">{t("An exhibition of photography")}</p>

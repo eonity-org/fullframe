@@ -7,7 +7,7 @@ import {
   type GalleryView,
 } from "@/lib/appearance";
 import { loadGallery } from "@/lib/gallery";
-import { directoryPathFor, exhibitionPath } from "@/lib/paths";
+import { exhibitionPath, organizationLink } from "@/lib/paths";
 import { ExhibitionGallery } from "./ExhibitionGallery";
 import { Teaser } from "./Teaser";
 import { exhibitionT } from "@/i18n/server";
@@ -26,7 +26,7 @@ export async function GalleryPage({
   const exhibition = await getExhibition(p.org, p.exhibition);
   if (!exhibition) notFound();
   if (!(await canView(exhibition))) return (
-      <Teaser title={exhibition.title} directory={directoryPathFor(exhibition)} />
+      <Teaser title={exhibition.title} organization={organizationLink(exhibition)} />
     );
   const saved = resolveAppearance(exhibition.appearance);
   const query = new URLSearchParams();
@@ -56,6 +56,7 @@ export async function GalleryPage({
       <ExhibitionGallery
         base={exhibitionPath(exhibition)}
         title={exhibition.title}
+        organization={organizationLink(exhibition)}
         subtitle={exhibition.subtitle}
         works={works}
         mode={mode}

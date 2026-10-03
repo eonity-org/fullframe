@@ -2,33 +2,29 @@
 import Link from "next/link";
 import { useT } from "@/i18n/client";
 import { LocaleSwitcher } from "./LocaleSwitcher";
-import { FrameMark } from "./FrameMark";
+import { HeaderTrail, type HeaderLevel } from "./HeaderTrail";
 
 /**
  * `switcher` only where the page speaks the viewer's language (the home page);
  * `home` lines the header up with the home page's width-capped column;
- * `directory` is where the logo leads (an exhibition's organization).
+ * `organization` is the trail's middle level (on an exhibition's pages) and
+ * `current` this page's name (an organization, an exhibition).
  */
 export function SiteHeader({
   switcher = false,
   home = false,
-  directory = "/",
+  organization,
+  current,
 }: {
   switcher?: boolean;
   home?: boolean;
-  directory?: string;
+  organization?: HeaderLevel;
+  current?: string;
 }) {
   const t = useT();
   return (
     <header className={home ? "gallery-header home-header" : "gallery-header"}>
-      <Link
-        className="wordmark"
-        href={directory}
-        aria-label={t("FullFrame — exhibitions")}
-      >
-        <FrameMark />
-        FullFrame
-      </Link>
+      <HeaderTrail organization={organization}>{current}</HeaderTrail>
       <div className="site-header-links">
         {switcher && <LocaleSwitcher />}
         <Link href="/admin">{t("Curator sign in ↗")}</Link>

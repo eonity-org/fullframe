@@ -5,12 +5,14 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { resolveAppearance } from "@/lib/appearance";
 import type { Exhibition } from "@/lib/exhibitions";
-import { exhibitionPath } from "@/lib/paths";
+import { exhibitionPath, organizationLink } from "@/lib/paths";
 import { viewerT } from "@/i18n/server";
 
 /**
  * The directory of exhibitions on view — every organization's at `/`, one
- * organization's at `/{organization}` (then its name heads the page).
+ * organization's at `/{organization}` (then its name follows FullFrame in
+ * the header). On `/` each poster names its organization, the one way to
+ * reach an organization's page without entering an exhibition first.
  */
 export async function ExhibitionDirectory({
   exhibitions,
@@ -24,13 +26,13 @@ export async function ExhibitionDirectory({
     <>
       {/* Outside the width-capped main, so its border spans the page (as on
           an exhibition's welcome page). */}
-      <SiteHeader switcher home />
+      <SiteHeader switcher home current={organization} />
       <main className="instance-home">
       {/* Intro and directory heading share a sidebar so the posters start at the top. */}
       <div className="instance-layout">
         <div className="instance-intro">
           <p className="eyebrow">
-            {organization ?? t("Independent photography exhibitions")}
+            {t("Independent photography exhibitions")}
           </p>
           <h1>
             {t("Make room")}
@@ -69,30 +71,42 @@ export async function ExhibitionDirectory({
           aria-labelledby="exhibitions-heading"
         >
           <div className="exhibition-cards">
-            {exhibitions.map((e, i) => (
-              <Link
-                href={exhibitionPath(e)}
-                key={e.id}
-                className="exhibition-tile"
-                data-palette={resolveAppearance(e.appearance).palette}
-              >
-                <div className="exhibition-tile-copy">
-                  <span className="eyebrow">
-                    {String(i + 1).padStart(2, "0")} · {t("On view")}
+            {exhibitions.map((e, i) => {
+              const up = organizationLink(e);
+              return (
+                // The title's link covers the whole poster; the organization
+                // link sits above it (links can't nest).
+                <article
+                  key={e.id}
+                  className="exhibition-tile"
+                  data-palette={resolveAppearance(e.appearance).palette}
+                >
+                  <div className="exhibition-tile-copy">
+                    <span className="eyebrow">
+                      {String(i + 1).padStart(2, "0")} · {t("On view")}
+                    </span>
+                    <h2>
+                      <Link href={exhibitionPath(e)}>{e.title}</Link>
+                    </h2>
+                    <p>{e.subtitle || t("Explore the collection")}</p>
+                    {!organization && up.label && (
+                      <div className="exhibition-tile-organization">
+                        {t("Organized by")}{" "}
+                        <Link href={up.href}>{up.label}</Link>
+                      </div>
+                    )}
+                  </div>
+                  <div className="exhibition-tile-image">
+                    <Suspense fallback={<span className="cover-placeholder" />}>
+                      <ExhibitionCover exhibition={e} priority={i < 2} />
+                    </Suspense>
+                  </div>
+                  <span className="exhibition-tile-link" aria-hidden="true">
+                    {t("View exhibition")} <span>↗</span>
                   </span>
-                  <h2>{e.title}</h2>
-                  <p>{e.subtitle || t("Explore the collection")}</p>
-                </div>
-                <div className="exhibition-tile-image">
-                  <Suspense fallback={<span className="cover-placeholder" />}>
-                    <ExhibitionCover exhibition={e} priority={i < 2} />
-                  </Suspense>
-                </div>
-                <span className="exhibition-tile-link">
-                  {t("View exhibition")} <span aria-hidden="true">↗</span>
-                </span>
-              </Link>
-            ))}
+                </article>
+              );
+            })}
           </div>
         </section>
       </div>

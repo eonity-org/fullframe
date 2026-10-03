@@ -238,13 +238,51 @@ legend {
   padding: 0 5%;
   border-bottom: 1px solid var(--line);
 }
-.gallery-brand {
+/* The header's left side, top level first: the mark with FullFrame (the
+   logo), the organization (quiet), the current page (leads). A middle dot
+   splits the levels, as everywhere else on the site ("01 · On view", the
+   footer, the studio's "FullFrame · Studio"). The names share a baseline;
+   only the mark is centred. */
+.header-trail {
   display: flex;
-  align-items: center;
-  gap: 12px;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+  min-width: 0;
+}
+.header-home {
+  align-items: baseline;
+}
+.header-home .frame-mark {
+  align-self: center;
+  color: var(--ink);
+}
+/* The dot is decoration: the empty alt text keeps screen readers quiet. */
+.header-level:before,
+.header-current:before,
+.admin-label:before {
+  content: "·";
+  content: "·" / "";
+  margin-right: 10px;
+  color: var(--muted);
+  font-weight: 400;
+}
+.header-level,
+.header-current {
   font-size: 17px;
-  font-weight: 600;
   letter-spacing: -0.035em;
+  overflow-wrap: anywhere;
+}
+.header-level {
+  color: var(--muted);
+  font-weight: 500;
+}
+.header-level:hover {
+  color: var(--ink);
+}
+.header-current {
+  color: var(--ink);
+  font-weight: 600;
 }
 .gallery-header nav {
   display: flex;
@@ -764,7 +802,7 @@ legend {
   font-size: clamp(40px, 8vw, 100px);
   margin: 20px 0;
 }
-.teaser .wordmark {
+.teaser .header-trail {
   align-self: flex-start;
 }
 .instance-home {
@@ -832,7 +870,7 @@ legend {
 [data-theme="dark"] .salon-heading {
   padding-top: 58px;
 }
-[data-theme="dark"] .gallery-brand .frame-mark {
+[data-theme="dark"] .header-home .frame-mark {
   color: #dadbd4;
 }
 [data-theme="dark"] .quiet-button:hover {
@@ -877,7 +915,8 @@ legend {
   font-family: Georgia, serif;
   font-size: 20px;
 }
-[data-typography="serif"] .gallery-brand {
+[data-typography="serif"] .header-level,
+[data-typography="serif"] .header-current {
   font-family: Georgia, serif;
   font-size: 21px;
 }
@@ -956,10 +995,12 @@ legend {
   font-size: 11px;
   font-weight: 400;
   letter-spacing: 0;
-  border-left: 1px solid var(--line);
-  padding-left: 13px;
-  margin-left: 2px;
+  margin-left: -2px; /* the dot 10px from the name, as in the header trail */
   color: var(--muted);
+}
+.admin-label:before {
+  font-size: 17px;
+  line-height: 0;
 }
 .studio {
   max-width: 1220px;
@@ -1780,10 +1821,12 @@ details[open] > summary {
     padding-top: 15px;
     padding-bottom: 12px;
   }
-  .gallery-brand {
-    font-size: 15px;
+  .header-trail {
     max-width: 100%;
-    overflow-wrap: anywhere;
+  }
+  .header-level,
+  .header-current {
+    font-size: 15px;
   }
   .gallery-header nav {
     gap: 22px;
@@ -2176,6 +2219,34 @@ details[open] > summary {
 .exhibition-tile-copy {
   min-height: 220px;
 }
+.exhibition-tile {
+  position: relative;
+}
+.exhibition-tile h2 a:after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+.exhibition-tile:has(h2 a:focus-visible) {
+  outline: 2px solid var(--poster-ink);
+  outline-offset: 3px;
+}
+.exhibition-tile h2 a:focus-visible {
+  outline: none;
+}
+/* Quiet on purpose: the poster is the exhibition's. */
+.exhibition-tile-organization {
+  position: relative; /* above the title's link */
+  margin-top: 12px;
+  font-size: 13px;
+}
+.exhibition-tile-organization a {
+  font-weight: 600;
+  text-underline-offset: 3px;
+}
+.exhibition-tile-organization a:hover {
+  text-decoration: underline;
+}
 .exhibition-tile h2 {
   font-size: clamp(28px, 3.2vw, 48px);
   line-height: 1.06;
@@ -2422,6 +2493,17 @@ details[open] > summary {
   }
 }
 @media (max-width: 640px) {
+  .header-trail:has(.header-level, .header-current) {
+    align-items: center; /* the levels left share one size */
+  }
+  .header-trail:has(.header-level, .header-current) .header-home-name {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
   .exhibition-directory .exhibition-cards {
     grid-template-columns: 1fr;
   }

@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { GalleryView } from "@/lib/appearance";
 import type { GalleryWork } from "@/lib/gallery";
 import { GalleryHeader } from "./GalleryHeader";
+import type { HeaderLevel } from "./HeaderTrail";
 import { PhotoCollection } from "./PhotoCollection";
 import { PhotoViewer } from "./PhotoViewer";
 import { GalleryNavigationLink, useGalleryAppearance } from "./ExhibitionStyle";
@@ -11,6 +12,7 @@ import { SiteFooter } from "./SiteFooter";
 export function ExhibitionGallery({
   base,
   title,
+  organization,
   subtitle,
   works,
   mode = "salon",
@@ -19,6 +21,8 @@ export function ExhibitionGallery({
   /** The exhibition's public path, `/{organization}/{exhibition}`. */
   base: string;
   title: string;
+  /** Its organization, the header trail's middle level. */
+  organization: HeaderLevel;
   subtitle?: string | null;
   works: GalleryWork[];
   mode?: GalleryView;
@@ -75,7 +79,7 @@ export function ExhibitionGallery({
   }, [open]);
   return (
     <div className={mode === "wall" ? "wall-page" : undefined}>
-      <GalleryHeader base={base} title={title} active={mode} />
+      <GalleryHeader base={base} title={title} organization={organization} active={mode} />
       {mode === "wall" ? (
         index < 0 ? (
           <main className="empty-state">
