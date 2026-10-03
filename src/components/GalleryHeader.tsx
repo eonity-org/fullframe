@@ -5,6 +5,7 @@ import {
 } from "./ExhibitionStyle";
 import { GALLERY_VIEWS } from "@/lib/appearance";
 import { useT } from "@/i18n/client";
+import { FrameMark } from "./FrameMark";
 export function GalleryHeader({
   base,
   title,
@@ -20,7 +21,7 @@ export function GalleryHeader({
   return (
     <header className="gallery-header">
       <Link className="gallery-brand" href={`${base}`}>
-        <span className="frame-mark" aria-hidden="true" />
+        <FrameMark />
         {title}
       </Link>
       <nav aria-label={t("Exhibition")}>

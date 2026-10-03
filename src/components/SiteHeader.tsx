@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { useT } from "@/i18n/client";
 import { LocaleSwitcher } from "./LocaleSwitcher";
+import { FrameMark } from "./FrameMark";
 
 /**
  * `switcher` only where the page speaks the viewer's language (the home page);
@@ -25,7 +26,7 @@ export function SiteHeader({
         href={directory}
         aria-label={t("FullFrame — exhibitions")}
       >
-        <span className="frame-mark" aria-hidden="true" />
+        <FrameMark />
         FullFrame
       </Link>
       <div className="site-header-links">

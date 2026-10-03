@@ -25,7 +25,9 @@ export function SiteFooter({
       {title && <strong className="footer-identity">{title}</strong>}
       <div className="footer-credits">
         <span>
-          <Link href="/">FullFrame</Link>
+          <Link className="brand-name" href="/">
+            FullFrame
+          </Link>
           {lemma && (
             <span className="footer-lemma">
               {" — "}

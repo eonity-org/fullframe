@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useT } from "@/i18n/client";
+import { FrameMark } from "./FrameMark";
 /** `directory` is where the logo leads: the exhibition's organization. */
 export function Teaser({
   title,
@@ -14,7 +15,7 @@ export function Teaser({
     <main className="teaser">
       <Link className="wordmark" href={directory}>
         FullFrame
-        <span className="frame-mark" />
+        <FrameMark />
       </Link>
       <div>
         <p className="eyebrow">{t("Coming into view")}</p>

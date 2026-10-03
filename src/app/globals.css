@@ -13,6 +13,9 @@
   --media: #f1f1ef;
   --font: "DM Sans", system-ui, sans-serif;
   --display: "Manrope", system-ui, sans-serif;
+  /* The FullFrame name is a logo: one face everywhere. Themes and the
+     exhibition's typography change --display, never this. */
+  --brand: "Manrope", system-ui, sans-serif;
   color-scheme: light;
 }
 * {
@@ -212,25 +215,19 @@ legend {
   display: inline-flex;
   align-items: center;
   gap: 12px;
-  font-family: var(--display);
   font-size: 21px;
+}
+.wordmark,
+.brand-name {
+  font-family: var(--brand);
   font-weight: 750;
   letter-spacing: -0.06em;
 }
 .frame-mark {
-  display: inline-block;
+  display: block;
   width: 23px;
   height: 23px;
-  border: 2px solid currentColor;
-  position: relative;
   flex-shrink: 0;
-}
-.frame-mark:after {
-  content: "";
-  position: absolute;
-  inset: 4px;
-  border-top: 1px solid currentColor;
-  border-right: 1px solid currentColor;
 }
 .gallery-header {
   display: flex;

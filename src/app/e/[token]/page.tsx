@@ -11,6 +11,7 @@ import { photoDetails, uploadAccess } from "@/lib/uploads";
 import { PhotoUploader } from "@/components/admin/PhotoUploader";
 import { I18nProvider } from "@/i18n/client";
 import { exhibitionLocale, exhibitionT } from "@/i18n/server";
+import { FrameMark } from "@/components/FrameMark";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { robots: { index: false, follow: false } };
@@ -41,7 +42,7 @@ export default async function Page({
       <div className="chrome-admin">
         <header className="admin-header author-header">
           <span className="wordmark">
-            <span className="frame-mark" />
+            <FrameMark />
             <span className="wordmark-name">FullFrame</span>
             <span className="admin-label">{t("Submission")}</span>
           </span>
