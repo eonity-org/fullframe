@@ -25,6 +25,11 @@ work: curators, jurors, authors and visitors each bring a view, and the
 exhibition is the sum of them. The brand line says it in words: *Make room for
 a different view.* (*Deja sitio a otra mirada.*)
 
+In motion the mark has a second reading: the click of a camera. Framing is
+choosing a view; the click is the moment of committing to it. The arriving
+corner is the shutter, closing on the picture for an instant and opening
+again.
+
 **Rules.**
 
 - The mark is deliberately incomplete. Don't add corners to it, fill it, or
@@ -61,14 +66,19 @@ animation and removed after it.
   short at both ends, so the frame stays open, as the frame lines in a real
   viewfinder do, and the eye closes it. Two corners that joined would draw a
   second, closed frame inside the first.
-- **The other view** (`arrive`, 2.4 s): the opposite corner comes in along
-  the diagonal, holds, and leaves. It plays when you enter an organization or
-  an exhibition. Moving between an exhibition's own views doesn't replay it.
-- **Many views** (`many`, 3 s): five corners of different sizes, different
-  crops of the same picture, drift in, settle on the two places and fade. It
-  plays when you come back to the home page from an organization or an
-  exhibition, where the many exhibitions are.
-- Both play once per arrival, in the header, and not at all with reduced
+
+Three motions, one per level of the header trail:
+
+| Arriving at | Motion | What happens |
+|---|---|---|
+| Home, from an organization or exhibition | **Many views** (`many`, 3 s) | Five corners of different sizes, different crops of the same picture, drift in, settle on the two places and fade. The many exhibitions. |
+| An organization | **Frame** (`frame`, 2.4 s) | The opposite corner comes in along the diagonal, holds, and leaves, smoothly. Another view frames the picture. |
+| An exhibition | **Shutter** (`shutter`, 1.8 s) | The opposite corner drifts in, slowing as it frames (about 1.1 s), clicks into place in about 110 ms (a hair past and back), then releases and leaves quickly. The shot is taken. |
+
+- The click belongs only to the exhibition: the moment one view takes its
+  shot of the work. Moving between an exhibition's own views doesn't replay
+  it.
+- Each plays once per arrival, in the header, and not at all with reduced
   motion. On a fresh page load the referrer decides where you came from.
 - Code: `src/lib/markMotion.ts`, started by `HeaderTrail`; the rules for
   when each plays are tested in `tests/markMotion.test.ts`.

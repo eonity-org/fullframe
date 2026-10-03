@@ -16,10 +16,11 @@ test("many views coming home from an organization or an exhibition", () => {
   assert.equal(motionFor("/admin", "/"), null);
 });
 
-test("the other view entering an organization or an exhibition", () => {
-  assert.equal(motionFor("/", "/lucila"), "arrive");
-  assert.equal(motionFor(null, "/lucila/semana-42"), "arrive");
-  assert.equal(motionFor("/lucila", "/lucila/semana-42"), "arrive");
+test("a framing view entering an organization, the shutter an exhibition", () => {
+  assert.equal(motionFor("/", "/lucila"), "frame");
+  assert.equal(motionFor("/lucila/semana-42", "/lucila"), "frame");
+  assert.equal(motionFor(null, "/lucila/semana-42"), "shutter");
+  assert.equal(motionFor("/lucila", "/lucila/semana-42"), "shutter");
   // Moving between an exhibition's own views is not entering it.
   assert.equal(motionFor("/lucila/semana-42", "/lucila/semana-42/wall"), null);
 });

@@ -8,7 +8,13 @@
  */
 import { isReservedOrganizationSlug } from "./paths";
 
-export type MarkMotion = "arrive" | "many";
+/**
+ * `many`: many views gather (coming home, where the many exhibitions are).
+ * `frame`: another view frames the picture (entering an organization).
+ * `shutter`: another view frames it and takes the shot (entering an
+ * exhibition).
+ */
+export type MarkMotion = "many" | "frame" | "shutter";
 
 const SVG = "http://www.w3.org/2000/svg";
 /** The opposite corner, 1.5 units short of the resting one at both ends. */
@@ -30,10 +36,10 @@ function corner(svg: SVGSVGElement, d: string): SVGPathElement {
 /** Play a motion on a FrameMark's svg, once. */
 export function playMarkMotion(svg: SVGSVGElement, motion: MarkMotion) {
   if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-  // The other view: the opposite corner comes in along the diagonal, holds,
-  // and leaves.
+  // One other view (frame, shutter): the opposite corner comes in along the
+  // diagonal, holds (frame) or clicks into place (shutter), and leaves.
   const views =
-    motion === "arrive"
+    motion !== "many"
       ? [{ d: OTHER, from: [-5, 5, 1] }]
       : // Many views: corners of different sizes, different crops of the
         // same picture, drift in and settle on the two places, then fade.
@@ -48,12 +54,39 @@ export function playMarkMotion(svg: SVGSVGElement, motion: MarkMotion) {
     const path = corner(svg, d);
     const away = `translate(${x}px, ${y}px) scale(${s})`;
     const home = "translate(0, 0) scale(1)";
-    const frames =
-      motion === "arrive"
+    const frames: Keyframe[] =
+      motion === "frame"
         ? [
             { transform: away, opacity: 0 },
             { transform: home, opacity: 1, offset: 0.32 },
             { transform: home, opacity: 1, offset: 0.68 },
+            { transform: away, opacity: 0 },
+          ]
+        : motion === "shutter"
+        ? [
+            // Frame: a slow drift, slowing as if finding the picture.
+            { transform: away, opacity: 0, easing: "cubic-bezier(.2,.7,.3,1)" },
+            {
+              transform: "translate(-0.9px, 0.9px)",
+              opacity: 1,
+              offset: 0.6,
+              easing: "cubic-bezier(.8,0,1,.6)",
+            },
+            // Click: the last stretch in about 110 ms, a hair past, home.
+            {
+              transform: "translate(0.25px, -0.25px)",
+              opacity: 1,
+              offset: 0.66,
+              easing: "ease-out",
+            },
+            { transform: home, opacity: 1, offset: 0.7 },
+            // Release: open and leave, quickly.
+            {
+              transform: home,
+              opacity: 1,
+              offset: 0.76,
+              easing: "cubic-bezier(.5,0,1,1)",
+            },
             { transform: away, opacity: 0 },
           ]
         : [
@@ -69,9 +102,10 @@ export function playMarkMotion(svg: SVGSVGElement, motion: MarkMotion) {
           ];
     path
       .animate(frames, {
-        duration: motion === "arrive" ? 2400 : 3000,
+        duration: { frame: 2400, shutter: 1800, many: 3000 }[motion],
         delay: i * 90,
-        easing: EASE,
+        // The shutter sets its own easing per step.
+        easing: motion === "shutter" ? "linear" : EASE,
         fill: "both",
       })
       .finished.then(
@@ -94,9 +128,9 @@ export function trailKey(path: string): string | null {
 
 /**
  * Which motion the mark plays on arriving at `current` from `previous`:
- * many views on coming home from an organization or an exhibition, the
- * other view on entering an organization or an exhibition (moving between
- * an exhibition's own views is not entering it).
+ * many views on coming home from an organization or an exhibition, a framing
+ * view on entering an organization, the shutter on entering an exhibition
+ * (moving between an exhibition's own views is not entering it).
  */
 export function motionFor(
   previous: string | null,
@@ -106,5 +140,6 @@ export function motionFor(
   const from = previous === null ? null : trailKey(previous);
   if (to === null) return null;
   if (to === "") return from ? "many" : null;
-  return from === to ? null : "arrive";
+  if (from === to) return null;
+  return to.includes("/") ? "shutter" : "frame";
 }
