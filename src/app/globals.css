@@ -814,6 +814,30 @@ legend {
   align-items: start;
   padding: 48px var(--page-inline) 0;
 }
+/* What the mark means, closing the home page: quiet, after the posters. */
+.about-mark {
+  padding-top: 110px;
+}
+.about-mark-mark {
+  width: 46px;
+  height: 46px;
+  color: var(--ink);
+}
+.about-mark h2 {
+  max-width: 24ch;
+  margin: 0 0 14px;
+  font-size: clamp(24px, 2.2vw, 32px);
+  line-height: 1.2;
+  letter-spacing: -0.04em;
+  text-wrap: balance;
+}
+.about-mark p {
+  max-width: 60ch;
+  margin: 0;
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1.65;
+}
 .instance-intro {
   position: sticky;
   top: 32px;
@@ -2471,6 +2495,10 @@ details[open] > summary {
   }
   .instance-intro {
     position: static;
+  }
+  .about-mark {
+    gap: 20px;
+    padding-top: 72px;
   }
   .exhibition-tile-copy {
     min-height: 190px;

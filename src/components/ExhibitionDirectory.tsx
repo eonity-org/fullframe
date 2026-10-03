@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { ExhibitionCover } from "@/components/ExhibitionCover";
+import { FrameMark } from "@/components/FrameMark";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { resolveAppearance } from "@/lib/appearance";
@@ -12,7 +13,8 @@ import { viewerT } from "@/i18n/server";
  * The directory of exhibitions on view — every organization's at `/`, one
  * organization's at `/{organization}` (then its name follows FullFrame in
  * the header). On `/` each poster names its organization, the one way to
- * reach an organization's page without entering an exhibition first.
+ * reach an organization's page without entering an exhibition first, and
+ * the page ends with what the mark means (BRAND.md).
  */
 export async function ExhibitionDirectory({
   exhibitions,
@@ -108,6 +110,23 @@ export async function ExhibitionDirectory({
           </div>
         </section>
       </div>
+      {!organization && (
+        // The intro's and the posters' columns, so the mark sits under the
+        // intro and the text under the posters.
+        <section className="instance-layout about-mark" aria-labelledby="about-mark-heading">
+          <FrameMark className="frame-mark about-mark-mark" />
+          <div>
+            <h2 id="about-mark-heading">
+              {t("Every view is partial. Together, they make the full frame.")}
+            </h2>
+            <p>
+              {t(
+                "The square is a photograph on the wall. The corner inside it is a viewfinder: one person’s view. It’s only a corner, because nobody sees the whole picture alone. FullFrame brings the views together, from those who curate, judge, take and look at the photographs.",
+              )}
+            </p>
+          </div>
+        </section>
+      )}
       <SiteFooter lemma={false} />
       </main>
     </>

@@ -56,6 +56,12 @@ keeps the same fine line. Standalone file: `public/fullframe-mark.svg`.
 strokes thickened to 4 and 3, so the corner survives at 16 px. It switches to
 `#dadbd4` in dark mode.
 
+**On the site.** The home page (`/`, not an organization's) ends with the
+meaning, after the exhibitions: the mark under the intro, then *Every view is
+partial. Together, they make the full frame.* (*Toda mirada es parcial.
+Juntas, completan el encuadre.*) and a short paragraph under the posters
+(`ExhibitionDirectory.tsx`).
+
 ## Motion
 
 Motion is the one place a second view arrives. The resting mark never
