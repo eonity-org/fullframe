@@ -684,6 +684,11 @@ a.wordmark:hover .wordmark-name {
   min-height: 52px;
   color: var(--muted);
 }
+/* The arrow stays quiet: no button box on hover (the pointer rests on it while paging) */
+.viewer-arrow:hover:not(:disabled) {
+  background: transparent;
+  color: var(--accent-dark);
+}
 .viewer-caption {
   width: 100%;
   max-width: 1000px;
@@ -2615,6 +2620,10 @@ details[open] > summary {
     background: #0005;
     width: 36px;
     height: 48px;
+    color: #fff;
+  }
+  .lightbox-dialog .viewer-arrow:hover:not(:disabled) {
+    background: #0005;
     color: #fff;
   }
   .lightbox-dialog .viewer-arrow.previous {
