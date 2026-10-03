@@ -1,3 +1,16 @@
+CREATE TABLE `authors` (
+	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+	`exhibition_id` integer NOT NULL,
+	`name` text NOT NULL,
+	`token_hash` text NOT NULL,
+	`token` text,
+	`revoked_at` integer,
+	`created_at` integer NOT NULL,
+	`updated_at` integer NOT NULL,
+	FOREIGN KEY (`exhibition_id`) REFERENCES `exhibitions`(`id`) ON UPDATE no action ON DELETE no action
+);
+--> statement-breakpoint
+CREATE UNIQUE INDEX `authors_token_hash_unique` ON `authors` (`token_hash`);--> statement-breakpoint
 CREATE TABLE `comments` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`juror_id` integer NOT NULL,
@@ -28,6 +41,7 @@ CREATE TABLE `exhibitions` (
 	`subtitle` text,
 	`organization_id` text,
 	`organization_name` text,
+	`organization_slug` text,
 	`vault_hash` text,
 	`vault_url` text,
 	`vault_base_url` text,
@@ -36,6 +50,8 @@ CREATE TABLE `exhibitions` (
 	`read_vault_key` text,
 	`write_vault_key` text,
 	`phase` text DEFAULT 'setup' NOT NULL,
+	`submissions` text DEFAULT 'pending' NOT NULL,
+	`submission_limit` integer DEFAULT 5 NOT NULL,
 	`locale` text DEFAULT 'en' NOT NULL,
 	`welcome_content` text,
 	`cover_image` text,
@@ -46,7 +62,7 @@ CREATE TABLE `exhibitions` (
 	`updated_at` integer NOT NULL
 );
 --> statement-breakpoint
-CREATE UNIQUE INDEX `exhibitions_slug_unique` ON `exhibitions` (`slug`);--> statement-breakpoint
+CREATE UNIQUE INDEX `exhibitions_organization_slug` ON `exhibitions` (`organization_slug`,`slug`);--> statement-breakpoint
 CREATE TABLE `jurors` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`exhibition_id` integer NOT NULL,
@@ -61,6 +77,16 @@ CREATE TABLE `jurors` (
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `jurors_token_hash_unique` ON `jurors` (`token_hash`);--> statement-breakpoint
+CREATE TABLE `submissions` (
+	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+	`author_id` integer NOT NULL,
+	`resource_hash` text NOT NULL,
+	`created_at` integer NOT NULL,
+	`updated_at` integer NOT NULL,
+	FOREIGN KEY (`author_id`) REFERENCES `authors`(`id`) ON UPDATE no action ON DELETE no action
+);
+--> statement-breakpoint
+CREATE UNIQUE INDEX `submissions_resource_hash_unique` ON `submissions` (`resource_hash`);--> statement-breakpoint
 CREATE TABLE `votes` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`juror_id` integer NOT NULL,

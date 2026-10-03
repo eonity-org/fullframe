@@ -5,16 +5,23 @@
  *
  *   npm run db:seed
  */
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { db, schema } from './index';
 import { encryptSecret } from '../src/lib/crypto';
 import { DEFAULT_APPEARANCE } from '../src/lib/appearance';
 
 async function main() {
-  const [exhibition] = await db
+  // The demo vault's organization: its slug heads the public address.
+  const organizationSlug = 'fullframe';
+  const where = and(
+    eq(schema.exhibitions.organizationSlug, organizationSlug),
+    eq(schema.exhibitions.slug, 'first-frame'),
+  );
+  const [exhibition] = (await db.query.exhibitions.findFirst({ where })) ? [] : await db
     .insert(schema.exhibitions)
     .values({
       slug: 'first-frame',
+      organizationSlug,
       title: 'First Frame',
       appearance: DEFAULT_APPEARANCE,
       vaultBaseUrl: process.env.TYDAL_BASE_URL || null,
@@ -38,14 +45,11 @@ async function main() {
         'jury evaluation ahead of the public opening.',
       ].join('\n'),
     })
-    .onConflictDoNothing({ target: schema.exhibitions.slug })
     .returning();
 
   const ex =
     exhibition ??
-    (await db.query.exhibitions.findFirst({
-      where: eq(schema.exhibitions.slug, 'first-frame'),
-    }))!;
+    (await db.query.exhibitions.findFirst({ where }))!;
 
   const existing = await db.query.criteria.findFirst({
     where: eq(schema.criteria.exhibitionId, ex.id),

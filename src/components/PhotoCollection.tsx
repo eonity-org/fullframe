@@ -7,12 +7,13 @@ import { Photograph } from "./Photograph";
 import { useT } from "@/i18n/client";
 
 export function PhotoCollection({
-  slug,
+  base,
   works,
   onOpen,
   mode,
 }: {
-  slug: string;
+  /** The exhibition's public path, `/{organization}/{exhibition}`. */
+  base: string;
   works: GalleryWork[];
   mode: "album" | "salon";
   onOpen: (work: GalleryWork) => void;
@@ -58,7 +59,7 @@ export function PhotoCollection({
         <Card
           className="photo-card"
           key={work.id}
-          href={openWall ? `/${slug}/wall/${work.id}` : undefined}
+          href={openWall ? `${base}/wall/${work.id}` : undefined}
           onClick={openWall ? undefined : () => onOpen(work)}
           aria-label={t("View {name}", { name: work.name })}
           style={

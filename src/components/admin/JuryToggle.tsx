@@ -17,6 +17,8 @@ export function JuryToggle({
   return (
     <>
       <button
+        // The jury box's main action — start, or close once judging runs.
+        className={phase === "setup" || phase === "judging" ? "primary" : undefined}
         disabled={pending || !hasJurors || phase === "open"}
         onClick={() =>
           start(async () => {

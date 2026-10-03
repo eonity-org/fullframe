@@ -4,19 +4,24 @@ import { eq, inArray } from "drizzle-orm";
 import { db, schema } from "@db/index";
 import { requireStudioAccess } from "@/lib/studioPage";
 import { loadGallery } from "@/lib/gallery";
-import { saveExhibitionDetails, updateBinding } from "@/lib/actions";
+import { updateBinding } from "@/lib/actions";
 import { tydalBaseUrl, tydalLinkBaseUrl } from "@/lib/tydal";
 import { AdminNav } from "@/components/admin/AdminNav";
-import { StageGuide } from "@/components/admin/StageGuide";
+import { StageBar } from "@/components/admin/StageBar";
+import { OverviewStats } from "@/components/admin/OverviewStats";
 import { JurorList } from "@/components/admin/JurorList";
 import { MintJurorForm } from "@/components/admin/MintJurorForm";
 import { JuryToggle } from "@/components/admin/JuryToggle";
+import { PhaseButton } from "@/components/admin/PhaseButton";
 import { DeleteExhibition } from "@/components/admin/DeleteExhibition";
 import { PhotoUploader } from "@/components/admin/PhotoUploader";
+import { SubmissionsPanel } from "@/components/admin/SubmissionsPanel";
+import { StudioStep } from "@/components/admin/StudioStep";
+import { authorUrl, submittedBy } from "@/lib/authors";
 import { photoDetails, uploadAccess, UPLOAD_ACCESS_NOTES } from "@/lib/uploads";
 import { Photograph } from "@/components/Photograph";
 import { viewerT } from "@/i18n/server";
-import { LOCALES, LOCALE_NAMES } from "@/i18n/core";
+import { exhibitionPath } from "@/lib/paths";
 export const dynamic = "force-dynamic";
 export default async function Page({
   params,
@@ -53,6 +58,12 @@ export default async function Page({
   const { access: upload, ingested, maxUploadBytes } = await uploadAccess(e);
   const added = await photoDetails(e, ingested).catch(() => []);
   const previews = new Map(gallery?.works.map((w) => [w.id, w.preview]) ?? []);
+  const larger = new Map(gallery?.works.map((w) => [w.id, w.display ?? w.preview]) ?? []);
+  const sentBy = await submittedBy(ingested);
+  const authors = await db.query.authors.findMany({
+    where: eq(schema.authors.exhibitionId, id),
+  });
+  const setup = e.phase === "setup";
   return (
     <main className="studio">
       {access === "view" && (
@@ -67,15 +78,22 @@ export default async function Page({
       </Link>
       <div className="page-heading">
         <div>
-          <p className="eyebrow">{t("Exhibition overview")}</p>
+          <p className="eyebrow">{t("Exhibition setup")}</p>
           <h1>{e.title}</h1>
+          <p className="intro">{t("Gather the photographs and, if you want one, a jury.")}</p>
         </div>
-        <Link className="button" href={`/${e.slug}/salon`} target="_blank">
+        <Link className="button" href={exhibitionPath(e, "salon")} target="_blank">
           {t("Preview exhibition ↗")}
         </Link>
       </div>
       <AdminNav id={id} />
-      <StageGuide id={id} phase={e.phase} />
+      <StageBar
+        id={id}
+        phase={e.phase}
+        page="setup"
+        selected={e.selectedHashes?.length ?? null}
+        base={exhibitionPath(e)}
+      />
       {error && (
         <p className="error" role="alert">
           {error === "connected"
@@ -89,149 +107,105 @@ export default async function Page({
         </p>
       )}
       {saved && <p className="status ok">{t("Connection saved.")}</p>}
-      <div className="overview-stats">
-        <div>
-          <span className="eyebrow">{t("Photographs")}</span>
-          <strong>{gallery?.works.length ?? "—"}</strong>
-          <small>
-            {gallery ? t("Connected to TYDAL") : t("Vault unavailable")}
-          </small>
-        </div>
-        <div>
-          <span className="eyebrow">{t("Exhibition")}</span>
-          <strong>{e.phase === "open" ? t("Published") : t("Private")}</strong>
-          <small>
-            {e.phase === "open"
-              ? t("Ready to share")
-              : t("Only you and invited jurors")}
-          </small>
-        </div>
-        <div>
-          <span className="eyebrow">{t("Jury")}</span>
-          <strong>{jurors.filter((j) => !j.revokedAt).length}</strong>
-          <small>
-            {e.phase === "judging"
-              ? t("Judging is open")
-              : t("Optional · invite people below")}
-          </small>
-        </div>
-      </div>
-      {e.phase === "setup" && (
-        <PhotoUploader
-          exhibitionId={id}
-          canUpload={access === "manage" && upload === "ready"}
-          maxUploadBytes={maxUploadBytes}
-          note={upload === "ready" ? null : t(UPLOAD_ACCESS_NOTES[upload])}
-          added={added.map((photo) => ({
-            ...photo,
-            preview: previews.get(photo.hash) ?? null,
-          }))}
-        />
-      )}
-      <div className="overview-columns">
-        <section className="panel">
-          <div className="section-heading">
-            <h2>{t("The exhibition")}</h2>
-            <span className="muted">{t("Public details")}</span>
-          </div>
-          <form
-            action={saveExhibitionDetails.bind(null, id)}
-            className="stack-form"
-          >
-            <label>
-              {t("Title")}
-              <input name="title" defaultValue={e.title} required />
-            </label>
-            <label>
-              {t("Exhibition language")}
-              <select name="locale" defaultValue={e.locale}>
-                {LOCALES.map((l) => (
-                  <option key={l} value={l} lang={l}>
-                    {LOCALE_NAMES[l]}
-                  </option>
-                ))}
-              </select>
-              <small className="muted">
-                {t(
-                  "Visitors and jurors see FullFrame in this language. Write the texts below in it too.",
-                )}
-              </small>
-            </label>
-            <label>
-              {t("Introduction")}
-              <input
-                name="subtitle"
-                defaultValue={e.subtitle || ""}
-                placeholder={t("A sentence to set the scene")}
-              />
-            </label>
-            <label>
-              {t("About this exhibition")}
-              <textarea
-                name="content"
-                rows={5}
-                defaultValue={e.welcomeContent || ""}
-                placeholder={t("Share the story behind the photographs.")}
-              />
-            </label>
-            <label>
-              {t("Cover photograph")}
-              <select name="coverImage" defaultValue={e.coverImage || ""}>
-                <option value="">{t("First photograph")}</option>
-                {gallery?.works
-                  .filter((w) => w.preview)
-                  .map((w) => (
-                    <option key={w.id} value={w.preview!}>
-                      {w.name}
-                    </option>
-                  ))}
-              </select>
-            </label>
-            <button className="primary">{t("Save details")}</button>
-          </form>
-        </section>
-        <aside className="panel collection-peek">
-          <div className="section-heading">
-            <h2>{t("The photographs")}</h2>
-            <Link href={`/admin/${id}/results`}>{t("Select →")}</Link>
-          </div>
-          {gallery ? (
-            <div className="mini-contact-sheet">
-              {gallery.works.slice(0, 6).map((w) => (
-                <div key={w.id}>
-                  <Photograph work={w} />
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="error">
+      <OverviewStats
+        exhibition={e}
+        photographs={gallery?.works.length ?? null}
+        jurors={jurors.filter((j) => !j.revokedAt).length}
+      />
+      <StudioStep
+        number={1}
+        id="submissions"
+        eyebrow={t("Open call · Optional")}
+        title={t("Submissions")}
+        active={setup && e.submissions !== "closed"}
+        status={
+          // In setup the panel itself says the period is closed.
+          setup
+            ? undefined
+            : e.phase === "selection"
+              ? t("Submissions are only possible while you prepare the exhibition. To reopen them, use Back to preparing in the Photographs step.")
+              : t("Submissions are only possible while you prepare the exhibition.")
+        }
+      >
+        {setup && (
+          <SubmissionsPanel
+            exhibitionId={id}
+            state={e.submissions}
+            limit={e.submissionLimit}
+            canOpen={upload === "ready"}
+            blockedNote={upload === "ready" ? null : t(UPLOAD_ACCESS_NOTES[upload])}
+            authors={authors.map((a) => ({
+              id: a.id,
+              name: a.name,
+              url: a.token ? authorUrl(a.token) : null,
+              sent: [...sentBy.values()].filter((s) => s.id === a.id).length,
+              revoked: !!a.revokedAt,
+            }))}
+          />
+        )}
+      </StudioStep>
+      <StudioStep
+        number={2}
+        id="photographs"
+        eyebrow={t("Yours and the authors’")}
+        title={t("Photographs")}
+        active={setup}
+        status={t(UPLOAD_ACCESS_NOTES["not-setup"])}
+        action={
+          e.phase === "selection" && (
+            <PhaseButton id={id} target="setup" label={t("Back to preparing")} />
+          )
+        }
+      >
+        {setup && (
+          <>
+            <p className="muted">
               {t(
-                "We couldn’t reach the vault. Check Connection settings below.",
+                "Photographs you add here go straight into this exhibition’s vault in TYDAL, with the details you give them — TYDAL keeps them exactly as written.",
               )}
             </p>
-          )}
-          <p className="muted">
-            {t(
-              "Photographs and their descriptions live in TYDAL. Choose which ones to exhibit in Selection & publish.",
+            <PhotoUploader
+              endpoint={`/admin/${id}/photographs`}
+              canUpload={access === "manage" && upload === "ready"}
+              maxUploadBytes={maxUploadBytes}
+              note={upload === "ready" ? null : t(UPLOAD_ACCESS_NOTES[upload])}
+              addedTitle={t("In this exhibition")}
+              added={added.map((photo) => ({
+                ...photo,
+                preview: previews.get(photo.hash) ?? null,
+                large: larger.get(photo.hash) ?? null,
+                authorLocked: sentBy.has(photo.hash),
+              }))}
+            />
+          </>
+        )}
+      </StudioStep>
+      <StudioStep
+        number={3}
+        id="jury"
+        eyebrow={t("A second perspective · Optional")}
+        title={t("Invite a jury")}
+        active={(setup && e.submissions !== "open") || e.phase === "judging"}
+        status={
+          setup
+            ? t("Close or skip submissions first.")
+            : e.phase === "open"
+            ? t("The exhibition is published; the jury’s work is done.")
+            : t("Judging is closed. You can reopen it while you are choosing.")
+        }
+        action={
+          <div className="button-row">
+            <JuryToggle
+              id={id}
+              phase={e.phase}
+              hasJurors={jurors.some((j) => !j.revokedAt)}
+            />
+            {setup && (
+              <PhaseButton id={id} target="selection" label={t("Skip the jury →")} />
             )}
-          </p>
-          <Link className="button primary" href={`/admin/${id}/results`}>
-            {t("Choose photographs →")}
-          </Link>
-        </aside>
-      </div>
-      <section className="panel" id="jury">
-        <div className="section-heading">
-          <div>
-            <p className="eyebrow">{t("A second perspective · Optional")}</p>
-            <h2>{t("Invite a jury")}</h2>
           </div>
-          <JuryToggle
-            id={id}
-            phase={e.phase}
-            hasJurors={jurors.some((j) => !j.revokedAt)}
-          />
-        </div>
+        }
+      >
         <p className="muted">
           {t(
             "Each juror gets a personal link. New exhibitions use one score from 1 to 5 and an optional private note.",
@@ -253,8 +227,46 @@ export default async function Page({
             votes: votes.filter((v) => v.jurorId === j.id).length,
           }))}
         />
-        <MintJurorForm exhibitionId={id} />
-      </section>
+        {e.phase !== "open" && <MintJurorForm exhibitionId={id} />}
+      </StudioStep>
+      <StudioStep
+        number={4}
+        id="choose"
+        eyebrow={t("The photographs")}
+        title={t("Choose and publish")}
+        active={e.phase === "selection" || e.phase === "open"}
+        status={
+          e.phase === "judging"
+            ? t("Close judging to choose the photographs.")
+            : t("When the photographs are in, start judging or skip the jury to choose which to exhibit.")
+        }
+        action={
+          <Link className="button primary" href={`/admin/${id}/results`}>
+            {t("Choose photographs →")}
+          </Link>
+        }
+      >
+        {gallery ? (
+          <div className="mini-contact-sheet wide">
+            {gallery.works.slice(0, 8).map((w) => (
+              <div key={w.id}>
+                <Photograph work={w} />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="error">
+            {t(
+              "We couldn’t reach the vault. Check Connection settings below.",
+            )}
+          </p>
+        )}
+        <p className="muted">
+          {t(
+            "In Selection you write the exhibition’s texts and choose the photographs; then pick its style and publish it in Appearance & publish.",
+          )}
+        </p>
+      </StudioStep>
       <details
         className="panel connection-settings"
         open={error === "vault" || !!saved}

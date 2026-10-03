@@ -2,6 +2,8 @@ import type { MetadataRoute } from "next";
 import { db } from "@db/index";
 import { resolveAppearance } from "@/lib/appearance";
 import { vaultFor } from "@/lib/tydal";
+import { withOrganizationSlug } from "@/lib/exhibitions";
+import { exhibitionPath } from "@/lib/paths";
 
 /**
  * Public sitemap: only OPEN exhibitions and their works — a
@@ -14,7 +16,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = (process.env.APP_URL ?? "").replace(/\/$/, "");
   if (!base) return [];
 
-  const exhibitions = await db.query.exhibitions.findMany();
+  const exhibitions = await Promise.all(
+    (await db.query.exhibitions.findMany()).map(withOrganizationSlug),
+  );
   const entries: MetadataRoute.Sitemap = [];
 
   for (const exhibition of exhibitions) {
@@ -23,7 +27,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     const { enabledViews } = resolveAppearance(exhibition.appearance);
     for (const path of ["", ...enabledViews.map((view) => `/${view}`)]) {
-      entries.push({ url: `${base}/${exhibition.slug}${path}`, lastModified });
+      entries.push({ url: `${base}${exhibitionPath(exhibition)}${path}`, lastModified });
     }
 
     if (!enabledViews.includes("wall")) continue;
@@ -34,7 +38,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         for (const card of res.resources) {
           if (card.id) {
             entries.push({
-              url: `${base}/${exhibition.slug}/wall/${card.id}`,
+              url: `${base}${exhibitionPath(exhibition, "wall", card.id)}`,
               lastModified,
             });
           }

@@ -1,9 +1,11 @@
 "use client";
 import { useState, useTransition } from "react";
 import { createExhibition, previewConnection } from "@/lib/actions";
-import { useT } from "@/i18n/client";
+import { useLocale, useT } from "@/i18n/client";
+import { LOCALES, LOCALE_NAMES, isLocale } from "@/i18n/core";
 export function ConnectionForm() {
   const t = useT();
+  const locale = useLocale();
   const [url, setUrl] = useState("");
   const [read, setRead] = useState("");
   const [write, setWrite] = useState("");
@@ -12,7 +14,11 @@ export function ConnectionForm() {
   > | null>(null);
   const [pending, start] = useTransition();
   const [creating, setCreating] = useState(false);
+  // The exhibition's language: the photographs' own when FullFrame speaks it
+  // (set from the preview), else the curator's.
+  const [language, setLanguage] = useState<string>(locale);
   const reset = () => setResult(null);
+  const written = result?.ok ? result.language : null;
   return (
     <div className="connect-card">
       <div className="section-heading">
@@ -113,6 +119,40 @@ export function ConnectionForm() {
             <input name="title" defaultValue={result.name} required />
           </label>
         )}
+        {result?.ok && (
+          <label>
+            {t("Exhibition language")}
+            <select
+              name="locale"
+              value={language}
+              onChange={(e) => setLanguage(e.target.value)}
+            >
+              {LOCALES.map((l) => (
+                <option key={l} value={l} lang={l}>
+                  {LOCALE_NAMES[l]}
+                </option>
+              ))}
+            </select>
+            <small className="muted">
+              {t(
+                "Visitors, invited authors and jurors see FullFrame in this language. You can change it later.",
+              )}
+            </small>
+            {written && written !== language && (
+              <small className="language-note" role="status">
+                {isLocale(written)
+                  ? t(
+                      "The photographs’ texts in this vault are in {language}: visitors will read them in a different language from FullFrame’s.",
+                      { language: LOCALE_NAMES[written] },
+                    )
+                  : t(
+                      "The photographs’ texts in this vault are in another language ({code}): visitors will read them in a different language from FullFrame’s.",
+                      { code: written },
+                    )}
+              </small>
+            )}
+          </label>
+        )}
         <div className="button-row">
           {result?.ok ? (
             <button className="primary" disabled={creating}>
@@ -124,9 +164,12 @@ export function ConnectionForm() {
               className="primary"
               disabled={!url || pending}
               onClick={() =>
-                start(async () =>
-                  setResult(await previewConnection(url, read, write)),
-                )
+                start(async () => {
+                  const preview = await previewConnection(url, read, write);
+                  setResult(preview);
+                  if (preview.ok && preview.language && isLocale(preview.language))
+                    setLanguage(preview.language);
+                })
               }
             >
               {pending ? t("Connecting…") : t("Connect vault →")}

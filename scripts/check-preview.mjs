@@ -9,6 +9,8 @@ if (!file?.endsWith("/preview.sqlite"))
 const db = new Database(file);
 const e = db.prepare("select * from exhibitions order by id limit 1").get();
 assert(e, "The preview needs an exhibition to check.");
+// Its public path — /{organization}/{exhibition} (src/lib/paths.ts).
+const at = e.organization_slug ? `/${e.organization_slug}/${e.slug}` : `/${e.slug}`;
 let checks = 0;
 function passed(message) {
   console.log("PASS", message);
@@ -86,7 +88,7 @@ for (const card of resources) {
 }
 passed(`${resources.length} vault previews load`);
 const themePage = await page(
-  `/${e.slug}/salon?ffTheme=editorial&ffPalette=plum&ffLayout=salon`,
+  `${at}/salon?ffTheme=editorial&ffPalette=plum&ffLayout=salon`,
   adminCookie,
 );
 assert(themePage.html.includes('data-theme="editorial"'));
@@ -94,27 +96,27 @@ assert(themePage.html.includes('data-layout="salon"'));
 assert(themePage.html.includes("photo-flow-salon"));
 assert(themePage.html.includes("#5E3A62"));
 passed("admin-only theme preview uses the requested theme and palette");
-const publicBaseline = await page(`/${e.slug}/salon`);
+const publicBaseline = await page(`${at}/salon`);
 const surface = html => html.match(/<div class="exhibition-surface"[^>]*>/)?.[0];
 assert(surface(publicBaseline.html));
 const alternateTheme = surface(publicBaseline.html).includes('data-theme="editorial"') ? "dark" : "editorial";
 const alternateLayout = surface(publicBaseline.html).includes('data-layout="salon"') ? "grid" : "salon";
 const publicTheme = await page(
-  `/${e.slug}/salon?ffTheme=${alternateTheme}&ffPalette=plum&ffLayout=${alternateLayout}`,
+  `${at}/salon?ffTheme=${alternateTheme}&ffPalette=plum&ffLayout=${alternateLayout}`,
 );
 assert.equal(surface(publicTheme.html), surface(publicBaseline.html));
 passed("anonymous visitors cannot override the published style");
 for (const reference of ["MissingPhotoHash", resources[0].slug, `${resources[0].id}/extra`].filter(Boolean)) {
-  const unavailable = await page(`/${e.slug}/wall/${reference}?ffViews=wall&ffDefault=wall`, adminCookie);
+  const unavailable = await page(`${at}/wall/${reference}?ffViews=wall&ffDefault=wall`, adminCookie);
   assert(unavailable.html.includes("Photograph unavailable"));
   assert(!unavailable.html.includes('aria-label="Next photograph"'));
   assert(unavailable.html.includes("Return to the exhibition"));
 }
-const validPhoto = await page(`/${e.slug}/wall/${resources[0].id}?ffViews=wall&ffDefault=wall`, adminCookie);
+const validPhoto = await page(`${at}/wall/${resources[0].id}?ffViews=wall&ffDefault=wall`, adminCookie);
 assert(!validPhoto.html.includes("Photograph unavailable"));
 assert(validPhoto.html.includes('aria-label="Next photograph"'));
 for (const route of ["browse", "indexes", `work/${resources[0].id}`])
-  assert.equal((await page(`/${e.slug}/${route}`, adminCookie)).response.status, 404);
+  assert.equal((await page(`${at}/${route}`, adminCookie)).response.status, 404);
 passed("Wall rejects unavailable hashes, human slugs and extra path segments; removed V1 routes return 404");
 // Exercise the same server actions used by the connection and appearance UI.
 const manifest = JSON.parse(
@@ -173,7 +175,7 @@ try {
       defaultView: "album",
     },
   );
-  const live = await page(`/${e.slug}/salon`);
+  const live = await page(`${at}/salon`);
   assert(live.html.includes('data-theme="dark"'));
   assert(live.html.includes('data-layout="salon"'));
   assert(live.html.includes("photo-flow-salon"));
@@ -181,38 +183,38 @@ try {
   passed(
     "applying a style persists the palette/theme and updates public pages",
   );
-  const album = await page(`/${e.slug}/album`);
+  const album = await page(`${at}/album`);
   assert.equal(album.response.status, 200);
   assert(album.html.includes("photo-flow-mosaic"));
   assert(
     [...album.html.matchAll(/<a\b[^>]*>/g)].some(
       ([tag]) =>
-        tag.includes(`href="/${e.slug}/album"`) &&
+        tag.includes(`href="${at}/album"`) &&
         tag.includes('aria-current="page"'),
     ),
   );
-  assert(!album.html.includes(`href="/${e.slug}/wall"`));
-  const about = await page(`/${e.slug}`);
+  assert(!album.html.includes(`href="${at}/wall"`));
+  const about = await page(`${at}`);
   assert(
     [...about.html.matchAll(/<a\b[^>]*>/g)].some(
       ([tag]) =>
-        tag.includes(`href="/${e.slug}/album"`) &&
+        tag.includes(`href="${at}/album"`) &&
         tag.includes('class="button primary"'),
     ),
   );
-  const hiddenWall = await page(`/${e.slug}/wall`);
-  assertRedirect(hiddenWall, `/${e.slug}/album`);
-  const spoofed = await page(`/${e.slug}/wall?ffViews=wall&ffDefault=wall`);
-  assertRedirect(spoofed, `/${e.slug}/album`);
+  const hiddenWall = await page(`${at}/wall`);
+  assertRedirect(hiddenWall, `${at}/album`);
+  const spoofed = await page(`${at}/wall?ffViews=wall&ffDefault=wall`);
+  assertRedirect(spoofed, `${at}/album`);
   const previewWall = await page(
-    `/${e.slug}/wall?ffViews=wall&ffDefault=wall`,
+    `${at}/wall?ffViews=wall&ffDefault=wall`,
     adminCookie,
   );
   assert.equal(previewWall.response.status, 200);
   assert(previewWall.html.includes('aria-label="Next photograph"'));
   const sitemap = await page("/sitemap.xml");
-  assert(sitemap.html.includes(`/${e.slug}/album`));
-  assert(!sitemap.html.includes(`/${e.slug}/wall`));
+  assert(sitemap.html.includes(`${at}/album`));
+  assert(!sitemap.html.includes(`${at}/wall`));
   passed(
     "Mosaic navigation, default entry, disabled routes, curator preview and sitemap agree",
   );
@@ -266,18 +268,18 @@ try {
   const anon = await fetch(`${base}/api/vault/h/${e.vault_hash}/resources`);
   assert.equal(anon.status, 404);
   passed("private exhibition blocks anonymous vault reads");
-  const privateAlbum = await page(`/${e.slug}/album`);
+  const privateAlbum = await page(`${at}/album`);
   assert(!privateAlbum.html.includes("photo-flow-mosaic"));
   assert(!privateAlbum.html.includes(resources[0].id));
   passed("private Mosaic does not expose photographs");
   const door = await fetch(`${base}/j/${token}`, { redirect: "manual" });
   assert.equal(door.status, 303);
-  assert.equal(door.headers.get("location"), `/${e.slug}/jury`);
+  assert.equal(door.headers.get("location"), `${at}/jury`);
   const juryCookie = door.headers
     .getSetCookie()
     .find((c) => c.startsWith("ff_jury="))
     .split(";")[0];
-  const jury = await page(`/${e.slug}/jury`, juryCookie);
+  const jury = await page(`${at}/jury`, juryCookie);
   assert.equal(jury.response.status, 200);
   assert(jury.html.includes("What do you see?"));
   passed("personal jury link lands on the simplified scoring screen");
@@ -358,7 +360,7 @@ try {
     ).status,
     409,
   );
-  const review = await page(`/${e.slug}/jury`, juryCookie);
+  const review = await page(`${at}/jury`, juryCookie);
   assert.equal(review.response.status, 200);
   assert(review.html.includes("Judging has closed. Thank you."));
   passed("closing judging freezes votes and preserves read-only review");

@@ -10,7 +10,8 @@ import { createHash, randomBytes } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { and, eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
+import { exhibitionPath, isExhibitionBase, isReservedOrganizationSlug } from "./paths";
 import { db, schema } from "@db/index";
 import {
   accessFor,
@@ -106,9 +107,10 @@ export async function logout(): Promise<void> {
 }
 
 /** A juror ends their session ("Quit voting") and returns to the exhibition. */
-export async function quitJury(exhibitionSlug: string): Promise<void> {
+/** `base` is the exhibition's public path (src/lib/paths.ts). */
+export async function quitJury(base: string): Promise<void> {
   (await cookies()).delete("ff_jury");
-  redirect(`/${exhibitionSlug}`);
+  redirect(isExhibitionBase(base) ? base : "/");
 }
 
 // ── Exhibitions ──────────────────────────────────────────────────────────────
@@ -125,6 +127,16 @@ export async function quitJury(exhibitionSlug: string): Promise<void> {
  *     keeps whatever was stored).
  */
 class ConnectionError extends Error {}
+
+/**
+ * The language the vault's photograph texts are written in — its ingest
+ * collection's, as TYDAL reports it (`es`, `pt-BR`…) — or null when TYDAL
+ * doesn't say (older backends, no ingest target). Only the primary subtag:
+ * FullFrame's locales are plain languages.
+ */
+function photoLanguage(meta: { language?: string | null }): string | null {
+  return meta.language ? meta.language.split("-")[0].toLowerCase() : null;
+}
 
 async function discover(url: string, readKey: string, writeKey = "") {
   const t = await viewerT();
@@ -166,6 +178,14 @@ async function discover(url: string, readKey: string, writeKey = "") {
         "This vault does not allow photographs to be viewed. Enable image access in TYDAL.",
       ),
     );
+  // Its organization's slug heads the exhibition's public address.
+  if (meta.organization && isReservedOrganizationSlug(meta.organization))
+    throw new ConnectionError(
+      t(
+        "This vault’s organization is called “{slug}” in TYDAL, a name FullFrame keeps for its own pages. Rename the organization in TYDAL, then connect again.",
+        { slug: meta.organization },
+      ),
+    );
   // Whose vault this is — only a write key learns it (TYDAL's probe).
   let organization: { id: string; name: string } | null = null;
   if (writeKey) {
@@ -174,10 +194,7 @@ async function discover(url: string, readKey: string, writeKey = "") {
       vault: { hash: meta.hash },
       key: writeKey,
     });
-    // `organization` is typed from @tydal/client's next release.
-    let caps: Awaited<ReturnType<typeof writer.writeCapabilities>> & {
-      organization?: { id: string; slug: string; name: string } | null;
-    };
+    let caps: Awaited<ReturnType<typeof writer.writeCapabilities>>;
     try {
       caps = await writer.writeCapabilities();
     } catch {
@@ -216,6 +233,7 @@ export async function previewConnection(
       name: meta.name,
       count: meta.resource_count,
       state: meta.state,
+      language: photoLanguage(meta),
     };
   } catch (e) {
     const t = await viewerT();
@@ -260,8 +278,16 @@ export async function createExhibition(formData: FormData): Promise<void> {
         : null;
     if (detail) redirect(`/admin?error=vault&detail=${encodeURIComponent(detail)}`);
   }
-  // A new exhibition starts in the curator's language; they can change it.
-  const locale = await viewerLocale();
+  // Chosen when connecting (it sets the language authors and jurors see);
+  // else the language the photographs' texts are written in, when FullFrame
+  // speaks it; else the curator's own. Editable later in the details.
+  const chosen = String(formData.get("locale") || "");
+  const written = photoLanguage(meta);
+  const locale = isLocale(chosen)
+    ? chosen
+    : written && isLocale(written)
+      ? written
+      : await viewerLocale();
   const title = String(formData.get("title") || meta.name).trim();
   const proposed =
     String(formData.get("slug") || title)
@@ -274,11 +300,18 @@ export async function createExhibition(formData: FormData): Promise<void> {
     where: eq(schema.exhibitions.vaultHash, meta.hash),
   });
   if (duplicate) redirect(`/admin/${duplicate.id}?error=connected`);
+  // Unique within the organization: its address is /{organization}/{slug}.
+  const organizationSlug = meta.organization || null;
   let slug = proposed;
   for (
     let n = 2;
     await db.query.exhibitions.findFirst({
-      where: eq(schema.exhibitions.slug, slug),
+      where: and(
+        organizationSlug
+          ? eq(schema.exhibitions.organizationSlug, organizationSlug)
+          : isNull(schema.exhibitions.organizationSlug),
+        eq(schema.exhibitions.slug, slug),
+      ),
     });
     n++
   )
@@ -293,6 +326,7 @@ export async function createExhibition(formData: FormData): Promise<void> {
       vaultBaseUrl: baseUrl,
       organizationId: organization?.id ?? null,
       organizationName: organization?.name ?? null,
+      organizationSlug,
       phase: "setup",
       locale,
       appearance: DEFAULT_APPEARANCE,
@@ -308,8 +342,8 @@ export async function createExhibition(formData: FormData): Promise<void> {
     weight: 1,
     position: 1,
   });
-  // Straight to the overview's "Add photographs" panel: the optional next step.
-  redirect(`/admin/${exhibition.id}#photographs`);
+  // Straight to the overview's first box.
+  redirect(`/admin/${exhibition.id}#submissions`);
 }
 
 export async function updateBinding(
@@ -351,7 +385,9 @@ export async function updateBinding(
         vaultBaseUrl: baseUrl,
         readVaultKey: encryptSecret(readKey),
         writeVaultKey: encryptSecret(writeKey),
-        // Same vault, so the same organization — filled in if it was unknown.
+        // Same vault, so the same organization — filled in if it was unknown,
+        // and its slug kept current (a rename in TYDAL moves the address).
+        ...(meta.organization ? { organizationSlug: meta.organization } : {}),
         ...(organization
           ? { organizationId: organization.id, organizationName: organization.name }
           : {}),
@@ -431,7 +467,8 @@ export async function saveCuratedSelection(
     .update(schema.exhibitions)
     .set({ selectedHashes: [...new Set(hashes)] })
     .where(eq(schema.exhibitions.id, exhibitionId));
-  revalidatePath(`/admin/${exhibitionId}/results`);
+  // The selection's size shows on every tab's stage bar (publish needs one).
+  revalidatePath(`/admin/${exhibitionId}`, "layout");
 }
 
 /**
@@ -467,7 +504,7 @@ export async function setPhase(
   if (exhibition.phase === target) return { ok: true };
 
   // Opening is a process, not a flag — `openExhibition` owns it.
-  if (target === "open") redirect(`/admin/${exhibitionId}/results`);
+  if (target === "open") redirect(`/admin/${exhibitionId}/publish`);
 
   // Reopen: close the vault before dropping back — un-publish and restore the
   // full submission projection.
@@ -485,18 +522,22 @@ export async function setPhase(
       .set({ phase: target, openedAt: null, writebackAt: null })
       .where(eq(schema.exhibitions.id, exhibitionId));
     revalidatePath(`/admin/${exhibitionId}`, "layout");
-    revalidatePath(`/${exhibition.slug}`, "layout");
+    revalidatePath(exhibitionPath(exhibition), "layout");
     revalidatePath("/admin");
     return { ok: true };
   }
 
-  // setup ↔ judging ↔ selection.
+  // setup ↔ judging ↔ selection. Leaving setup ends the submission period;
+  // coming back doesn't reopen it by itself.
   await db
     .update(schema.exhibitions)
-    .set({ phase: target })
+    .set({
+      phase: target,
+      ...(exhibition.submissions === "open" ? { submissions: "closed" as const } : {}),
+    })
     .where(eq(schema.exhibitions.id, exhibitionId));
   revalidatePath(`/admin/${exhibitionId}`, "layout");
-  revalidatePath(`/${exhibition.slug}`, "layout");
+  revalidatePath(exhibitionPath(exhibition), "layout");
   revalidatePath("/admin");
   return { ok: true };
 }
@@ -572,6 +613,16 @@ export async function deleteExhibition(
   await db
     .delete(schema.jurors)
     .where(eq(schema.jurors.exhibitionId, exhibitionId));
+  const authors = await db.query.authors.findMany({
+    where: eq(schema.authors.exhibitionId, exhibitionId),
+  });
+  for (const author of authors)
+    await db
+      .delete(schema.submissions)
+      .where(eq(schema.submissions.authorId, author.id));
+  await db
+    .delete(schema.authors)
+    .where(eq(schema.authors.exhibitionId, exhibitionId));
   await db
     .delete(schema.criteria)
     .where(eq(schema.criteria.exhibitionId, exhibitionId));
@@ -665,6 +716,125 @@ export async function regenerateJuror(
   return { url: jurorUrl(token) };
 }
 
+// ── Submissions ──────────────────────────────────────────────────────────────
+
+/**
+ * Move the submission period: open it, close it, or skip it (closed without
+ * ever opening). Only while the exhibition is in setup.
+ */
+export async function setSubmissions(
+  exhibitionId: number,
+  state: "open" | "closed",
+): Promise<{ ok: true } | { error: string }> {
+  await requireManage(exhibitionId);
+  const t = await viewerT();
+  const exhibition = await db.query.exhibitions.findFirst({
+    where: eq(schema.exhibitions.id, exhibitionId),
+  });
+  if (!exhibition) return { error: t("This exhibition no longer exists.") };
+  if (exhibition.phase !== "setup")
+    return {
+      error: t("Submissions can only be open while you prepare the exhibition."),
+    };
+  if (
+    state === "open" &&
+    !(await db.query.authors.findFirst({
+      where: and(
+        eq(schema.authors.exhibitionId, exhibitionId),
+        isNull(schema.authors.revokedAt),
+      ),
+    }))
+  )
+    return { error: t("Invite an author first: nobody could send photographs yet.") };
+  await db
+    .update(schema.exhibitions)
+    .set({ submissions: state })
+    .where(eq(schema.exhibitions.id, exhibitionId));
+  revalidatePath(`/admin/${exhibitionId}`);
+  return { ok: true };
+}
+
+/** How many photographs each invited author may send. */
+export async function setSubmissionLimit(
+  exhibitionId: number,
+  limit: number,
+): Promise<{ ok: true } | { error: string }> {
+  await requireManage(exhibitionId);
+  const t = await viewerT();
+  if (!Number.isInteger(limit) || limit < 1 || limit > 100)
+    return { error: t("Allow between 1 and 100 photographs.") };
+  await db
+    .update(schema.exhibitions)
+    .set({ submissionLimit: limit })
+    .where(eq(schema.exhibitions.id, exhibitionId));
+  revalidatePath(`/admin/${exhibitionId}`);
+  return { ok: true };
+}
+
+export type MintAuthorResult = { ok: true } | { error: string } | null;
+
+/** Invite an author: a name, fixed from now on, and a personal link. */
+export async function mintAuthor(
+  exhibitionId: number,
+  _previous: MintAuthorResult,
+  formData: FormData,
+): Promise<MintAuthorResult> {
+  await requireManage(exhibitionId);
+  const t = await viewerT();
+  const name = String(formData.get("name") ?? "").trim();
+  if (!name) return { error: t("An author needs a name.") };
+  const { newToken } = await import("./authors");
+  await db
+    .insert(schema.authors)
+    .values({ exhibitionId, name, ...newToken() });
+  revalidatePath(`/admin/${exhibitionId}`);
+  return { ok: true };
+}
+
+/**
+ * A new personal link for an author (the old one stops working) — the answer
+ * to a lost or leaked link. Photographs already sent stay theirs.
+ */
+export async function regenerateAuthor(
+  exhibitionId: number,
+  authorId: number,
+): Promise<{ url: string } | { error: string }> {
+  await requireManage(exhibitionId);
+  const { authorUrl, newToken } = await import("./authors");
+  const fresh = newToken();
+  await db
+    .update(schema.authors)
+    .set({ ...fresh, revokedAt: null })
+    // Scoped to this exhibition: access was checked for it, not for the author.
+    .where(
+      and(
+        eq(schema.authors.id, authorId),
+        eq(schema.authors.exhibitionId, exhibitionId),
+      ),
+    );
+  revalidatePath(`/admin/${exhibitionId}`);
+  return { url: authorUrl(fresh.token) };
+}
+
+/** The author's link stops working; photographs already sent stay. */
+export async function revokeAuthor(
+  exhibitionId: number,
+  authorId: number,
+): Promise<void> {
+  await requireManage(exhibitionId);
+  await db
+    .update(schema.authors)
+    .set({ revokedAt: new Date() })
+    // Scoped to this exhibition: access was checked for it, not for the author.
+    .where(
+      and(
+        eq(schema.authors.id, authorId),
+        eq(schema.authors.exhibitionId, exhibitionId),
+      ),
+    );
+  revalidatePath(`/admin/${exhibitionId}`);
+}
+
 // ── Selection & opening (E4) ─────────────────────────────────────────────────
 
 /**
@@ -682,9 +852,9 @@ export async function openExhibition(exhibitionId: number): Promise<void> {
   });
   if (!exhibition) return;
   if (!exhibition.selectedHashes?.length)
-    redirect(`/admin/${exhibitionId}/results?error=selection`);
+    redirect(`/admin/${exhibitionId}/publish?error=selection`);
   if (exhibition.phase === "judging")
-    redirect(`/admin/${exhibitionId}/results?error=judging`);
+    redirect(`/admin/${exhibitionId}/publish?error=judging`);
 
   const { rawVotes } = await import("./votesData");
   const { computeScores } = await import("./scoring");
@@ -694,7 +864,7 @@ export async function openExhibition(exhibitionId: number): Promise<void> {
   const ranked = computeScores(data);
   const selected = exhibition.selectedHashes ?? [];
   if (selected.length === 0)
-    redirect(`/admin/${exhibitionId}/results?error=empty`);
+    redirect(`/admin/${exhibitionId}/publish?error=empty`);
 
   // The immutable scoring record — FullFrame owns scoring, so this is the
   // record of record (persisted below; the exhibition is phase-frozen once
@@ -725,7 +895,7 @@ export async function openExhibition(exhibitionId: number): Promise<void> {
   const t = await viewerT();
   if (!result.ok) {
     redirect(
-      `/admin/${exhibitionId}/results?error=writeback&detail=${encodeURIComponent(
+      `/admin/${exhibitionId}/publish?error=writeback&detail=${encodeURIComponent(
         result.errors
           .map((e) => t(e))
           .join(" · ")
@@ -741,9 +911,12 @@ export async function openExhibition(exhibitionId: number): Promise<void> {
       openedAt: new Date(),
       writebackAt: new Date(),
       scoringRecord,
+      // Publishing straight from preparing ends a submission period still
+      // open, as leaving setup any other way does (setPhase).
+      ...(exhibition.submissions === "open" ? { submissions: "closed" as const } : {}),
     })
     .where(eq(schema.exhibitions.id, exhibitionId));
 
-  revalidatePath(`/admin/${exhibitionId}/results`);
-  redirect(`/admin/${exhibitionId}/results?opened=1`);
+  revalidatePath(`/admin/${exhibitionId}`, "layout");
+  redirect(`/admin/${exhibitionId}/publish?opened=1`);
 }
