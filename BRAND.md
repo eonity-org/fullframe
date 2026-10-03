@@ -29,7 +29,7 @@ a different view.* (*Deja sitio a otra mirada.*)
 
 - The mark is deliberately incomplete. Don't add corners to it, fill it, or
   turn the viewfinder into a closed rectangle. A second corner appears only in
-  motion, as the moment a view completes the frame (see "Motion").
+  motion, as the moment another view meets this one (see "Motion").
 - The mark always stands with the name FullFrame, never with an
   organization's or exhibition's name. Alone, without the name, it still
   means FullFrame: the favicon, the header on a phone, the cover placeholder.
@@ -50,6 +50,28 @@ keeps the same fine line. Standalone file: `public/fullframe-mark.svg`.
 **Favicon.** `src/app/icon.svg`: the same drawing on a 32-unit grid with
 strokes thickened to 4 and 3, so the corner survives at 16 px. It switches to
 `#dadbd4` in dark mode.
+
+## Motion
+
+Motion is the one place a second view arrives. The resting mark never
+changes; the arriving corners are drawn on top for the length of the
+animation and removed after it.
+
+- **The arriving corner never touches the resting one.** It stops 1.5 units
+  short at both ends, so the frame stays open, as the frame lines in a real
+  viewfinder do, and the eye closes it. Two corners that joined would draw a
+  second, closed frame inside the first.
+- **The other view** (`arrive`, 2.4 s): the opposite corner comes in along
+  the diagonal, holds, and leaves. It plays when you enter an organization or
+  an exhibition. Moving between an exhibition's own views doesn't replay it.
+- **Many views** (`many`, 3 s): five corners of different sizes, different
+  crops of the same picture, drift in, settle on the two places and fade. It
+  plays when you come back to the home page from an organization or an
+  exhibition, where the many exhibitions are.
+- Both play once per arrival, in the header, and not at all with reduced
+  motion. On a fresh page load the referrer decides where you came from.
+- Code: `src/lib/markMotion.ts`, started by `HeaderTrail`; the rules for
+  when each plays are tested in `tests/markMotion.test.ts`.
 
 ## The name
 
