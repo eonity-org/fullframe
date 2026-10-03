@@ -96,10 +96,14 @@ Three motions, one per level of the header trail:
 
 - **FullFrame**, one word with two capitals, in every language. Never "Full
   Frame".
-- Always set in **Manrope 750, letter-spacing −0.06em**, through the `--brand`
+- Always set in **Manrope 600 (semibold), letter-spacing −0.05em**, light
+  enough to sit with the mark's thin lines, through the `--brand`
   token in `src/app/globals.css`. Themes and an exhibition's typography change
   `--display`, never `--brand`. Classes: `.wordmark` (the header lockup) and
   `.brand-name` (the footer credit).
+- One colour, like the mark: the surface's text colour, also on hover. It
+  never takes the link accent or an exhibition's palette. Hovered, a 1 px
+  underline (the weight of the mark's corner) shows it's a link.
 - Lockup: mark, 12 px gap, name. Name at 21 px in headers (19 px on phones).
 
 ## The header trail

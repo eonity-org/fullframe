@@ -222,11 +222,26 @@ legend {
   gap: 12px;
   font-size: 21px;
 }
+/* Semibold, to sit with the mark's thin lines. */
 .wordmark,
 .brand-name {
   font-family: var(--brand);
-  font-weight: 750;
-  letter-spacing: -0.06em;
+  font-weight: 600;
+  letter-spacing: -0.05em;
+}
+/* The name never takes the accent (links' hover colour, an exhibition's
+   palette): it stays the text colour, like the mark. Hovered, it shows it's
+   a link with a thin underline, the weight of the mark's corner. */
+.wordmark,
+.wordmark:hover,
+.brand-name:hover {
+  color: var(--ink);
+}
+.header-home:hover .header-home-name,
+a.wordmark:hover .wordmark-name {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 5px;
 }
 .frame-mark {
   display: block;
@@ -2254,10 +2269,13 @@ details[open] > summary {
 .exhibition-tile {
   position: relative;
 }
+/* Above everything in the poster (the cover image is positioned too), so a
+   click anywhere enters the exhibition. */
 .exhibition-tile h2 a:after {
   content: "";
   position: absolute;
   inset: 0;
+  z-index: 1;
 }
 .exhibition-tile:has(h2 a:focus-visible) {
   outline: 2px solid var(--poster-ink);
@@ -2268,7 +2286,8 @@ details[open] > summary {
 }
 /* Quiet on purpose: the poster is the exhibition's. */
 .exhibition-tile-organization {
-  position: relative; /* above the title's link */
+  position: relative;
+  z-index: 2; /* above the title's link */
   margin-top: 12px;
   font-size: 13px;
 }
