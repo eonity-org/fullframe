@@ -40,7 +40,7 @@ export default async function Page({
   return (
     <I18nProvider locale={exhibitionLocale(exhibition)}>
       <div className="chrome-admin">
-        <header className="admin-header author-header">
+        <header className="admin-header">
           <span className="wordmark">
             <FrameMark />
             <span className="wordmark-name">FullFrame</span>

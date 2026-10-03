@@ -105,6 +105,10 @@ The header's left side names where you are, top level first:
 - On phones (under 640 px), when levels follow, the mark alone stands for
   FullFrame.
 - Component: `src/components/HeaderTrail.tsx`.
+- One page column everywhere (home, exhibitions, studio, jury): sides padded
+  by `--page-inline` (5%, content at most 1440 px, 18 px on phones), headers
+  `--header-height` (92 px) high. The logo and the page content always start
+  at the same left edge, and the header never changes width between pages.
 
 ## Colour
 

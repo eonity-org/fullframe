@@ -24,9 +24,7 @@ export async function ExhibitionDirectory({
   const t = await viewerT();
   return (
     <>
-      {/* Outside the width-capped main, so its border spans the page (as on
-          an exhibition's welcome page). */}
-      <SiteHeader switcher home current={organization} />
+      <SiteHeader switcher current={organization} />
       <main className="instance-home">
       {/* Intro and directory heading share a sidebar so the posters start at the top. */}
       <div className="instance-layout">

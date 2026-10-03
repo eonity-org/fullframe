@@ -16,6 +16,11 @@
   /* The FullFrame name is a logo: one face everywhere. Themes and the
      exhibition's typography change --display, never this. */
   --brand: "Manrope", system-ui, sans-serif;
+  /* The one page column: every header and page pads its sides by this, so
+     the logo and the content share a left edge on every page. 5% a side,
+     content never wider than 1440px (18px a side on phones). */
+  --page-inline: max(5%, calc((100% - 1440px) / 2));
+  --header-height: 92px;
   color-scheme: light;
 }
 * {
@@ -234,8 +239,8 @@ legend {
   align-items: center;
   justify-content: space-between;
   gap: 24px;
-  min-height: 92px;
-  padding: 0 5%;
+  min-height: var(--header-height);
+  padding: 0 var(--page-inline);
   border-bottom: 1px solid var(--line);
 }
 /* The header's left side, top level first: the mark with FullFrame (the
@@ -307,9 +312,7 @@ legend {
   color: var(--ink);
 }
 .salon {
-  max-width: 1800px;
-  margin: auto;
-  padding: 0 5%;
+  padding: 0 var(--page-inline);
 }
 .salon-heading {
   display: flex;
@@ -493,8 +496,7 @@ legend {
   color: var(--muted);
 }
 .exhibition-surface > .gallery-footer {
-  margin-left: 5%;
-  margin-right: 5%;
+  margin-inline: var(--page-inline);
 }
 .footer-identity {
   color: var(--ink);
@@ -584,7 +586,7 @@ legend {
   flex: none;
 }
 .photo-viewer {
-  padding: 0 5% 12px;
+  padding: 0 var(--page-inline) 12px;
   background: var(--room);
   color: var(--ink);
   display: grid;
@@ -750,9 +752,7 @@ legend {
   display: grid;
   grid-template-columns: 0.9fr 1.1fr;
   gap: 7%;
-  padding: 70px 5% 40px;
-  max-width: 1800px;
-  margin: auto;
+  padding: 70px var(--page-inline) 40px;
   align-items: center;
   min-height: calc(100dvh - 220px);
 }
@@ -805,18 +805,14 @@ legend {
 .teaser .header-trail {
   align-self: flex-start;
 }
-.instance-home {
-  max-width: 1600px;
-  margin: auto;
-}
+
 /* Home: the intro is a sticky sidebar beside the posters, not a hero above them. */
 .instance-layout {
   display: grid;
   grid-template-columns: minmax(240px, 0.75fr) minmax(0, 2fr);
   gap: 56px;
   align-items: start;
-  /* 5%, like the header, so the logo and the page text share a left edge. */
-  padding: 48px 5% 0;
+  padding: 48px var(--page-inline) 0;
 }
 .instance-intro {
   position: sticky;
@@ -846,13 +842,7 @@ legend {
   min-height: 250px;
 }
 .instance-home > .gallery-footer {
-  margin-left: 5%;
-  margin-right: 5%;
-}
-/* Past 1600px the home column stops growing; its header insets to match it
-   (5% of the 1600px column = 80px, plus the centring margin). */
-.home-header {
-  padding-inline: max(5%, calc((100% - 1600px) / 2 + 80px));
+  margin-inline: var(--page-inline);
 }
 /* Themes change composition and typography; palettes tint only the controls. */
 [data-theme="dark"] {
@@ -941,10 +931,8 @@ legend {
   color-scheme: light;
 }
 .admin-header {
-  height: 82px;
-  /* Lined up with the studio column (.studio: 1220px, 35px padding) so the
-     logo and the page content share a left edge at every width. */
-  padding: 0 max(35px, calc((100% - 1220px) / 2 + 35px));
+  height: var(--header-height);
+  padding: 0 var(--page-inline);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -990,22 +978,18 @@ legend {
 .admin-label {
   align-self: baseline;
 }
+/* "Studio", "Submission": set like the header trail's levels, so the dot
+   and the names read as one line, as on the public pages. */
 .admin-label {
   font-family: var(--font);
-  font-size: 11px;
-  font-weight: 400;
-  letter-spacing: 0;
+  font-size: 17px;
+  font-weight: 500;
+  letter-spacing: -0.035em;
   margin-left: -2px; /* the dot 10px from the name, as in the header trail */
   color: var(--muted);
 }
-.admin-label:before {
-  font-size: 17px;
-  line-height: 0;
-}
 .studio {
-  max-width: 1220px;
-  margin: 0 auto;
-  padding: 48px 35px 80px;
+  padding: 48px var(--page-inline) 80px;
 }
 .page-heading {
   display: flex;
@@ -1309,11 +1293,9 @@ details[open] > summary {
   display: grid;
   grid-template-columns: 1.1fr 0.9fr;
   gap: 10%;
-  max-width: 1220px; /* the studio column, like every studio page */
-  margin: auto;
-  min-height: calc(100dvh - 82px);
+  min-height: calc(100dvh - var(--header-height));
   align-items: center;
-  padding: 60px 35px;
+  padding: 60px var(--page-inline);
 }
 .login-intro h1 {
   font-size: clamp(38px, 4vw, 58px);
@@ -1633,13 +1615,13 @@ details[open] > summary {
   border-color: #84222a;
 }
 .jury-header {
-  height: 84px;
+  height: var(--header-height);
   background: #fff;
   border-bottom: 1px solid var(--line);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 4%;
+  padding: 0 var(--page-inline);
   gap: 20px;
 }
 .jury-header > div {
@@ -1682,7 +1664,7 @@ details[open] > summary {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 325px;
   gap: 5%;
-  padding: 35px 4%;
+  padding: 35px var(--page-inline);
   min-height: calc(100dvh - 160px);
 }
 .jury-photo {
@@ -1763,7 +1745,7 @@ details[open] > summary {
   padding: 10px 12px;
 }
 .jury-grid {
-  padding: 40px 5%;
+  padding: 40px var(--page-inline);
 }
 .jury-grid h1 {
   font-size: 34px;
@@ -1811,6 +1793,9 @@ details[open] > summary {
   }
 }
 @media (max-width: 640px) {
+  :root {
+    --page-inline: 18px;
+  }
   body {
     font-size: 14px;
   }
@@ -1939,8 +1924,7 @@ details[open] > summary {
     aspect-ratio: 5/4;
   }
   .admin-header {
-    height: 70px;
-    padding: 0 18px; /* the studio's phone padding */
+    height: 76px;
   }
   .wordmark {
     font-size: 19px;
@@ -1949,10 +1933,10 @@ details[open] > summary {
     font-size: 11px;
   }
   .admin-label {
-    font-size: 10px;
+    font-size: 15px;
   }
   .studio {
-    padding: 30px 18px 50px;
+    padding-block: 30px 50px;
   }
   .page-heading {
     align-items: flex-start;
@@ -2071,7 +2055,7 @@ details[open] > summary {
     display: flex;
     flex-direction: column;
     align-items: stretch;
-    padding: 40px 22px;
+    padding: 40px var(--page-inline);
     gap: 30px;
   }
   .login-intro h1 {
@@ -2085,7 +2069,7 @@ details[open] > summary {
     min-height: 80px;
     gap: 12px;
     flex-wrap: wrap;
-    padding: 14px 5%;
+    padding: 14px var(--page-inline);
   }
   .jury-header strong {
     font-size: 16px;
@@ -2100,7 +2084,7 @@ details[open] > summary {
   .jury-work {
     display: flex;
     flex-direction: column;
-    padding: 24px 5%;
+    padding: 24px var(--page-inline);
     gap: 10px;
   }
   .jury-photo > img {
@@ -3043,12 +3027,9 @@ details[open] > summary {
   padding: 10px 0;
   border-top: 1px solid var(--line);
 }
-.author-page {
-  max-width: 980px;
-}
-/* The author's header lines up with the page's narrower column. */
-.admin-header.author-header {
-  padding: 0 max(35px, calc((100% - 980px) / 2 + 35px));
+/* The author's page keeps a narrower measure, on the shared left edge. */
+.author-page > * {
+  max-width: 910px;
 }
 .author-done {
   display: grid;
