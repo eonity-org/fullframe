@@ -16,7 +16,7 @@ For local development on Docker, those two are the only values to set — the ot
 
 Curators sign into [the studio](http://localhost:3020/admin) with their TYDAL account and see their organizations' exhibitions (see DEPLOY.md). Open the studio, paste a shared TYDAL vault URL, and check the connection. A private vault needs its read key; publishing and closing need a write key with `w:activate`, `w:open` and `w:close`; adding and correcting photographs from the studio also needs `w:ingest`, `w:update` and `w:withdraw`. No seed, organization identifier or resource slug is needed. In TYDAL, `php artisan exhibitions:create --org=… --name="…"` makes that vault and its keys in one step (after `exhibitions:setup` once per organization).
 
-See [DEPLOY.md](DEPLOY.md) for environment, backups and container networking, and [the exhibition guide](docs/GUIDE.md) for the curator and juror workflows.
+See [DEPLOY.md](DEPLOY.md) for environment, backups and container networking, [the exhibition guide](docs/GUIDE.md) for the curator and juror workflows, and [BRAND.md](BRAND.md) for what the mark means and the rules for the name, the header and the colours.
 
 ## The experience
 
