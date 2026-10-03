@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { ExhibitionCover } from "@/components/ExhibitionCover";
-import { FrameMark } from "@/components/FrameMark";
+import { AboutMark } from "@/components/AboutMark";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { resolveAppearance } from "@/lib/appearance";
@@ -66,67 +66,70 @@ export async function ExhibitionDirectory({
             )}
           </div>
         </div>
-        <section
-          className="exhibition-directory"
-          aria-labelledby="exhibitions-heading"
-        >
-          <div className="exhibition-cards">
-            {exhibitions.map((e, i) => {
-              const up = organizationLink(e);
-              return (
-                // The title's link covers the whole poster; the organization
-                // link sits above it (links can't nest).
-                <article
-                  key={e.id}
-                  className="exhibition-tile"
-                  data-palette={resolveAppearance(e.appearance).palette}
-                >
-                  <div className="exhibition-tile-copy">
-                    <span className="eyebrow">
-                      {String(i + 1).padStart(2, "0")} · {t("On view")}
+        {/* The posters' column; on `/` it ends with what the mark means,
+            where a reader scrolling the posters arrives (the intro and the
+            header may be long out of view by then). */}
+        <div className="instance-main">
+          <section
+            className="exhibition-directory"
+            aria-labelledby="exhibitions-heading"
+          >
+            <div className="exhibition-cards">
+              {exhibitions.map((e, i) => {
+                const up = organizationLink(e);
+                return (
+                  // The title's link covers the whole poster; the organization
+                  // link sits above it (links can't nest).
+                  <article
+                    key={e.id}
+                    className="exhibition-tile"
+                    data-palette={resolveAppearance(e.appearance).palette}
+                  >
+                    <div className="exhibition-tile-copy">
+                      <span className="eyebrow">
+                        {String(i + 1).padStart(2, "0")} · {t("On view")}
+                      </span>
+                      <h2>
+                        <Link href={exhibitionPath(e)}>{e.title}</Link>
+                      </h2>
+                      <p>{e.subtitle || t("Explore the collection")}</p>
+                      {!organization && up.label && (
+                        <div className="exhibition-tile-organization">
+                          {t("Organized by")}{" "}
+                          <Link href={up.href}>{up.label}</Link>
+                        </div>
+                      )}
+                    </div>
+                    <div className="exhibition-tile-image">
+                      <Suspense fallback={<span className="cover-placeholder" />}>
+                        <ExhibitionCover exhibition={e} priority={i < 2} />
+                      </Suspense>
+                    </div>
+                    <span className="exhibition-tile-link" aria-hidden="true">
+                      {t("View exhibition")} <span>↗</span>
                     </span>
-                    <h2>
-                      <Link href={exhibitionPath(e)}>{e.title}</Link>
-                    </h2>
-                    <p>{e.subtitle || t("Explore the collection")}</p>
-                    {!organization && up.label && (
-                      <div className="exhibition-tile-organization">
-                        {t("Organized by")}{" "}
-                        <Link href={up.href}>{up.label}</Link>
-                      </div>
-                    )}
-                  </div>
-                  <div className="exhibition-tile-image">
-                    <Suspense fallback={<span className="cover-placeholder" />}>
-                      <ExhibitionCover exhibition={e} priority={i < 2} />
-                    </Suspense>
-                  </div>
-                  <span className="exhibition-tile-link" aria-hidden="true">
-                    {t("View exhibition")} <span>↗</span>
-                  </span>
-                </article>
-              );
-            })}
-          </div>
-        </section>
+                  </article>
+                );
+              })}
+            </div>
+          </section>
+          {!organization && (
+            <section className="about-mark" aria-labelledby="about-mark-heading">
+              <div>
+                <h2 id="about-mark-heading">
+                  {t("Every view is partial. Together, they make the full frame.")}
+                </h2>
+                <p>
+                  {t(
+                    "The square is a photograph on the wall. The corner inside it is a viewfinder: one person’s view. It’s only a corner, because nobody sees the whole picture alone. FullFrame brings the views together, from those who curate, judge, take and look at the photographs.",
+                  )}
+                </p>
+              </div>
+              <AboutMark />
+            </section>
+          )}
+        </div>
       </div>
-      {!organization && (
-        // The intro's and the posters' columns, so the mark sits under the
-        // intro and the text under the posters.
-        <section className="instance-layout about-mark" aria-labelledby="about-mark-heading">
-          <FrameMark className="frame-mark about-mark-mark" />
-          <div>
-            <h2 id="about-mark-heading">
-              {t("Every view is partial. Together, they make the full frame.")}
-            </h2>
-            <p>
-              {t(
-                "The square is a photograph on the wall. The corner inside it is a viewfinder: one person’s view. It’s only a corner, because nobody sees the whole picture alone. FullFrame brings the views together, from those who curate, judge, take and look at the photographs.",
-              )}
-            </p>
-          </div>
-        </section>
-      )}
       <SiteFooter lemma={false} />
       </main>
     </>

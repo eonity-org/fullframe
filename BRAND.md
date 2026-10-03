@@ -56,11 +56,14 @@ keeps the same fine line. Standalone file: `public/fullframe-mark.svg`.
 strokes thickened to 4 and 3, so the corner survives at 16 px. It switches to
 `#dadbd4` in dark mode.
 
-**On the site.** The home page (`/`, not an organization's) ends with the
-meaning, after the exhibitions: the mark under the intro, then *Every view is
-partial. Together, they make the full frame.* (*Toda mirada es parcial.
-Juntas, completan el encuadre.*) and a short paragraph under the posters
-(`ExhibitionDirectory.tsx`).
+**On the site.** The home page (`/`, not an organization's) ends the
+posters' column with the meaning, where a reader scrolling the exhibitions
+arrives: a rule 90% of the column wide, then *Every view is partial.
+Together, they make the full frame.* (*Toda mirada es parcial. Juntas,
+completan el encuadre.*) and a short paragraph, with the mark larger at their
+right (96 px, 64 px on phones). When the block comes into view the mark
+plays many views once, the sentence beside it in motion
+(`ExhibitionDirectory.tsx`, `AboutMark.tsx`).
 
 ## Motion
 
@@ -77,15 +80,15 @@ Three motions, one per level of the header trail:
 
 | Arriving at | Motion | What happens |
 |---|---|---|
-| Home, from an organization or exhibition | **Many views** (`many`, 3 s) | Five corners of different sizes, different crops of the same picture, drift in, settle on the two places and fade. The many exhibitions. |
+| Home, from an organization or exhibition; and the large mark closing the home page, once it scrolls into view | **Many views** (`many`, 3 s) | Five corners of different sizes, different crops of the same picture, drift in, settle on the two places and fade. The many exhibitions. |
 | An organization | **Frame** (`frame`, 2.4 s) | The opposite corner comes in along the diagonal, holds, and leaves, smoothly. Another view frames the picture. |
 | An exhibition | **Shutter** (`shutter`, 1.8 s) | The opposite corner drifts in, slowing as it frames (about 1.1 s), clicks into place in about 110 ms (a hair past and back), then releases and leaves quickly. The shot is taken. |
 
 - The click belongs only to the exhibition: the moment one view takes its
   shot of the work. Moving between an exhibition's own views doesn't replay
   it.
-- Each plays once per arrival, in the header, and not at all with reduced
-  motion. On a fresh page load the referrer decides where you came from.
+- Each plays once: per arrival in the header, per visit for the home page's
+  large mark; and not at all with reduced motion. On a fresh page load the referrer decides where you came from.
 - Code: `src/lib/markMotion.ts`, started by `HeaderTrail`; the rules for
   when each plays are tested in `tests/markMotion.test.ts`.
 

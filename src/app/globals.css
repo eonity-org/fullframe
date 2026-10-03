@@ -814,14 +814,38 @@ legend {
   align-items: start;
   padding: 48px var(--page-inline) 0;
 }
-/* What the mark means, closing the home page: quiet, after the posters. */
+.instance-main {
+  min-width: 0;
+}
+/* What the mark means, closing the posters' column on the home page: a rule
+   90% of the column wide, then the text with the mark, larger, at its right. */
 .about-mark {
-  padding-top: 110px;
+  display: flex;
+  align-items: center;
+  gap: 48px;
+  margin-top: 90px;
+  padding-top: 70px;
+  position: relative;
+}
+.about-mark:before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 5%;
+  right: 5%;
+  border-top: 1px solid var(--line);
+}
+.about-mark > div {
+  min-width: 0;
+  flex: 1;
 }
 .about-mark-mark {
-  width: 46px;
-  height: 46px;
+  flex-shrink: 0;
   color: var(--ink);
+}
+.about-mark-mark .frame-mark {
+  width: 96px;
+  height: 96px;
 }
 .about-mark h2 {
   max-width: 24ch;
@@ -2497,8 +2521,13 @@ details[open] > summary {
     position: static;
   }
   .about-mark {
-    gap: 20px;
-    padding-top: 72px;
+    margin-top: 64px;
+    padding-top: 52px;
+    gap: 28px;
+  }
+  .about-mark-mark .frame-mark {
+    width: 64px;
+    height: 64px;
   }
   .exhibition-tile-copy {
     min-height: 190px;
