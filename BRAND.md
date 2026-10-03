@@ -38,9 +38,9 @@ again.
 - The mark always stands with the name FullFrame, never with an
   organization's or exhibition's name. Alone, without the name, it still
   means FullFrame: the favicon, the header on a phone, the cover placeholder.
-- One colour: the text colour of the surface (`currentColor`): ink
-  `#202b2c` on light, `#dadbd4` on dark. It is never tinted with an
-  exhibition's palette.
+- The frame is the surface's text colour; the viewfinder corner is
+  FullFrame blue where FullFrame is the subject (see "Colour"). Neither ever
+  takes an exhibition's palette.
 
 **Drawing.** `src/components/FrameMark.tsx`, on a 23-unit grid:
 
@@ -53,8 +53,8 @@ The strokes don't scale (`vector-effect: non-scaling-stroke`), so a large mark
 keeps the same fine line. Standalone file: `public/fullframe-mark.svg`.
 
 **Favicon.** `src/app/icon.svg`: the same drawing on a 32-unit grid with
-strokes thickened to 4 and 3, so the corner survives at 16 px. It switches to
-`#dadbd4` in dark mode.
+strokes thickened to 4 and 3, so the corner survives at 16 px. Frame `#202b2c`
+and corner FullFrame blue; `#dadbd4` and `#5295b3` in dark mode.
 
 **On the site.** The home page (`/`, not an organization's) ends the
 posters' column with the meaning, where a reader scrolling the exhibitions
@@ -101,7 +101,7 @@ Three motions, one per level of the header trail:
   token in `src/app/globals.css`. Themes and an exhibition's typography change
   `--display`, never `--brand`. Classes: `.wordmark` (the header lockup) and
   `.brand-name` (the footer credit).
-- One colour, like the mark: the surface's text colour, also on hover. It
+- Always the text colour, like the mark's frame, also on hover. It
   never takes the link accent or an exhibition's palette. Hovered, a 1 px
   underline (the weight of the mark's corner) shows it's a link.
 - Lockup: mark, 12 px gap, name. Name at 21 px in headers (19 px on phones).
@@ -136,8 +136,23 @@ The header's left side names where you are, top level first:
 ## Colour
 
 FullFrame's interface uses TYDAL's blues (sRGB): accent `#1a5d7d`, dark
-`#08435e`, tint `#e8f2f7`. Exhibitions choose their own palette; the mark and
-the name never take it.
+`#08435e`, tint `#e8f2f7`.
+
+**The view in blue.** The mark's frame and the name are always the text
+colour. Only the viewfinder corner, one person's view, can carry colour:
+FullFrame blue `#1a5d7d` (`--fullframe-blue`, TYDAL's blue), set through
+`--view-colour` where FullFrame itself is the subject:
+
+- the home page header, the large mark closing the home page (and the views
+  that arrive there in motion), the studio and the invited-author page;
+- the favicon, where the corner is `#5295b3` on dark browser chrome.
+
+Inside organizations and exhibitions the corner is the text colour too, so
+the mark stays as neutral as a gallery wall and never clashes with an
+exhibition's palette.
+
+The TYDAL credit in the footer is TYDAL's text-only logo (no underline, more
+legible at 16 px), monochrome `#0A5475`, white on Dark Gallery.
 
 ## Voice
 

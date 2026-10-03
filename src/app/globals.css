@@ -20,6 +20,10 @@
      the logo and the content share a left edge on every page. 5% a side,
      content never wider than 1440px (18px a side on phones). */
   --page-inline: max(5%, calc((100% - 1440px) / 2));
+  /* FullFrame's colour, TYDAL's blue. Only the mark's viewfinder corner (one
+     person's view) takes it, and only where FullFrame itself is the subject
+     (the home page, the studio, the favicon); see --view-colour. */
+  --fullframe-blue: #1a5d7d;
   --header-height: 92px;
   color-scheme: light;
 }
@@ -236,6 +240,17 @@ legend {
 .wordmark:hover,
 .brand-name:hover {
   color: var(--ink);
+}
+/* The view in blue: where FullFrame is the subject, the mark's corner (and
+   the views that arrive in motion) take FullFrame blue. Elsewhere it stays
+   the text colour, like the frame. */
+.frame-mark-view {
+  stroke: var(--view-colour, currentColor);
+}
+.header-trail:not(:has(.header-level, .header-current)),
+.chrome-admin,
+.about-mark {
+  --view-colour: var(--fullframe-blue);
 }
 .header-home:hover .header-home-name,
 a.wordmark:hover .wordmark-name {
@@ -536,8 +551,8 @@ a.wordmark:hover .wordmark-name {
   align-items: center;
   gap: 6px;
 }
-/* The simplified TYDAL logo for small sizes (144 × 64, shown 36 × 16):
-   monochrome #0A5475, swapped for the white variant on Dark Gallery, where
+/* The TYDAL text-only logo (no underline, for legibility at small sizes;
+   144 × 64, shown 36 × 16): monochrome #0A5475, swapped for the white variant on Dark Gallery, where
    the blue would be too dark to read. */
 .tydal-mark {
   display: block;

@@ -25,6 +25,8 @@ const EASE = "cubic-bezier(.3,0,.2,1)";
 function corner(svg: SVGSVGElement, d: string): SVGPathElement {
   const path = document.createElementNS(SVG, "path");
   path.setAttribute("d", d);
+  // A view, coloured like the mark's own corner.
+  path.setAttribute("class", "frame-mark-view");
   path.setAttribute("stroke-width", "1");
   path.setAttribute("vector-effect", "non-scaling-stroke");
   path.setAttribute("opacity", "0");
