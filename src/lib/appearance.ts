@@ -5,11 +5,17 @@ import { msg } from "@/i18n/core";
  * Labels are English translation keys — render them with `t(label)`.
  */
 export const PALETTES = {
+  /**
+   * The values of TYDAL's own `tydal` theme (the logo's blues), under the
+   * plainer name "Blue": here it's one exhibition style among others, not the
+   * tool's brand. The default for new exhibitions; the key stays `blue`
+   * because saved appearances store it.
+   */
   blue: {
     label: msg("Blue"),
-    accent: "#006E95",
-    dark: "#005373",
-    soft: "#E0F4F8",
+    accent: "#1A5D7D",
+    dark: "#08435E",
+    soft: "#E8F2F7",
   },
   william: {
     label: msg("William"),
@@ -110,7 +116,7 @@ export type Appearance = {
   defaultView: GalleryView;
 };
 export const DEFAULT_APPEARANCE: Appearance = {
-  palette: "william",
+  palette: "blue",
   theme: "gallery",
   typography: "sans",
   layout: "salon",

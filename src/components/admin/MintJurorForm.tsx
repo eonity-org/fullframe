@@ -1,9 +1,6 @@
 "use client";
 
-/**
- * Mint a juror: the personal URL is shown exactly once — only its hash is
- * stored. Losing it means revoke + mint again.
- */
+/** Invite a juror: the new line in the list above carries the link to copy. */
 import { useActionState } from "react";
 import { mintJuror, type MintResult } from "@/lib/actions";
 import { useT } from "@/i18n/client";
@@ -16,29 +13,15 @@ export function MintJurorForm({ exhibitionId }: { exhibitionId: number }) {
   );
 
   return (
-    <div>
-      {result && "url" in result && (
-        <p className="mint-result">
-          {t.rich("Personal URL for {name}:", {
-            name: <strong>{result.name}</strong>,
-          })}
-          <code>{result.url}</code>
-        </p>
-      )}
+    <form action={action} className="invite-form">
+      <label>
+        {t("Name")}
+        <input name="name" required />
+      </label>
+      <button type="submit" disabled={pending}>
+        {pending ? t("Creating…") : t("Invite juror")}
+      </button>
       {result && "error" in result && <p className="error">{result.error}</p>}
-      <form action={action} className="admin-form grid">
-        <label>
-          {t("Name")}
-          <input name="name" required />
-        </label>
-        <label>
-          {t("Email")}
-          <input name="email" type="email" />
-        </label>
-        <button type="submit" disabled={pending}>
-          {pending ? t("Creating…") : t("Create invitation link")}
-        </button>
-      </form>
-    </div>
+    </form>
   );
 }

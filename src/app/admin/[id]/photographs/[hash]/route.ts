@@ -2,12 +2,14 @@
  * Correct (PATCH) or remove (DELETE) a photograph the curator added here —
  * the vault's `update` / `withdraw` ops. Only during setup; TYDAL itself
  * refuses any photograph that didn't arrive through this vault's `ingest`.
+ * A photograph an invited author sent keeps that author's name.
  */
 import { eq } from "drizzle-orm";
 import { db, schema } from "@db/index";
 import { studioAccess, studioSession } from "@/lib/admin";
 import { updatePhotograph, withdrawPhotograph } from "@/lib/uploads";
 import { detailsFrom, missingFields } from "@/lib/photoFields";
+import { forgetSubmission, keepAuthor } from "@/lib/authors";
 import { log } from "@/lib/log";
 import { viewerT } from "@/i18n/server";
 
@@ -65,7 +67,7 @@ export async function PATCH(request: Request, { params }: Context) {
   } catch {
     return Response.json({ error: "Invalid JSON" }, { status: 400 });
   }
-  const details = detailsFrom(body);
+  const details = await keepAuthor(hash, detailsFrom(body));
   if (missingFields(details).length)
     return Response.json(
       { error: t("Give the photograph at least a title and an author.") },
@@ -91,5 +93,6 @@ export async function DELETE(_request: Request, { params }: Context) {
     log.warn("withdraw.refused", { exhibitionId: id, status: result.status });
     return Response.json({ error: t(result.error) }, { status: result.status });
   }
+  await forgetSubmission(hash);
   return Response.json({ ok: true });
 }

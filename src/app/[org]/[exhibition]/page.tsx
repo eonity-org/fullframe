@@ -2,8 +2,9 @@ import {
   ExhibitionEntryLink,
   ExhibitionEntryLinks,
 } from "@/components/ExhibitionEntryLinks";
-import { notFound } from "next/navigation";
-import { canView, getExhibition } from "@/lib/exhibitions";
+import { notFound, permanentRedirect } from "next/navigation";
+import { canView, getExhibition, legacyAddress } from "@/lib/exhibitions";
+import { exhibitionPath, organizationLink } from "@/lib/paths";
 import { loadGallery } from "@/lib/gallery";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
@@ -14,9 +15,10 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ exhibition: string }>;
+  params: Promise<{ org: string; exhibition: string }>;
 }) {
-  const e = await getExhibition((await params).exhibition);
+  const { org, exhibition } = await params;
+  const e = await getExhibition(org, exhibition);
   const t = exhibitionT(e ?? {});
   return {
     title: e?.title || "FullFrame",
@@ -26,11 +28,17 @@ export async function generateMetadata({
 export default async function Page({
   params,
 }: {
-  params: Promise<{ exhibition: string }>;
+  params: Promise<{ org: string; exhibition: string }>;
 }) {
-  const e = await getExhibition((await params).exhibition);
-  if (!e) notFound();
-  if (!(await canView(e))) return <Teaser title={e.title} />;
+  const { org, exhibition } = await params;
+  const e = await getExhibition(org, exhibition);
+  if (!e) {
+    // An old `/{exhibition}/{view}` address lands here as org + exhibition.
+    const moved = await legacyAddress([org, exhibition]);
+    if (moved) permanentRedirect(moved);
+    notFound();
+  }
+  if (!(await canView(e))) return <Teaser title={e.title} organization={organizationLink(e)} />;
   let works: Awaited<ReturnType<typeof loadGallery>>["works"] = [];
   try {
     works = (await loadGallery(e)).works;
@@ -41,7 +49,7 @@ export default async function Page({
   const cover = works.find((w) => w.preview === e.coverImage) || works[0];
   return (
     <>
-      <SiteHeader />
+      <SiteHeader organization={organizationLink(e)} current={e.title} />
       <main className="welcome-page">
         <div className="welcome-copy">
           <p className="eyebrow">{t("An exhibition of photography")}</p>
@@ -59,7 +67,7 @@ export default async function Page({
                 <p key={i}>{p}</p>
               ))}
           </div>
-          <ExhibitionEntryLinks slug={e.slug} />
+          <ExhibitionEntryLinks base={exhibitionPath(e)} />
           <p className="welcome-count">
             {works.length
               ? t.n(
@@ -74,7 +82,7 @@ export default async function Page({
           {cover && (
             <>
               <ExhibitionEntryLink
-                slug={e.slug}
+                base={exhibitionPath(e)}
                 className="welcome-image-link"
                 aria-label={t("Enter the exhibition: {title}", {
                   title: e.title,

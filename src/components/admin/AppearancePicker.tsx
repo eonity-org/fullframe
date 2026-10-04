@@ -14,11 +14,12 @@ import {
 import { useT } from "@/i18n/client";
 export function AppearancePicker({
   id,
-  slug,
+  base,
   initial,
 }: {
   id: number;
-  slug: string;
+  /** The exhibition's public path, `/{organization}/{exhibition}`. */
+  base: string;
   initial: Appearance;
 }) {
   const t = useT();
@@ -37,7 +38,7 @@ export function AppearancePicker({
   const target = value.enabledViews.includes(previewView)
     ? previewView
     : value.defaultView;
-  const previewUrl = `/${slug}/${target}?${new URLSearchParams({ ffTheme: value.theme, ffType: value.typography, ffPalette: value.palette, ffLayout: value.layout, ffViews: value.enabledViews.join(","), ffDefault: value.defaultView })}`;
+  const previewUrl = `${base}/${target}?${new URLSearchParams({ ffTheme: value.theme, ffType: value.typography, ffPalette: value.palette, ffLayout: value.layout, ffViews: value.enabledViews.join(","), ffDefault: value.defaultView })}`;
   return (
     <section className="appearance-editor">
       <div className="section-heading">

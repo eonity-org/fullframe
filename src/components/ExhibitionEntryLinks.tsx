@@ -4,12 +4,13 @@ import { GalleryLink, useGalleryAppearance } from "./ExhibitionStyle";
 import { useT } from "@/i18n/client";
 
 export function ExhibitionEntryLink({
-  slug,
+  base,
   children,
   className,
   "aria-label": ariaLabel,
 }: {
-  slug: string;
+  /** The exhibition's public path, `/{organization}/{exhibition}`. */
+  base: string;
   children: ReactNode;
   className?: string;
   "aria-label"?: string;
@@ -18,7 +19,7 @@ export function ExhibitionEntryLink({
   return (
     <GalleryLink
       className={className}
-      href={`/${slug}/${defaultView}`}
+      href={`${base}/${defaultView}`}
       aria-label={ariaLabel}
     >
       {children}
@@ -26,11 +27,11 @@ export function ExhibitionEntryLink({
   );
 }
 
-export function ExhibitionEntryLinks({ slug }: { slug: string }) {
+export function ExhibitionEntryLinks({ base }: { base: string }) {
   const t = useT();
   return (
     <div className="button-row">
-      <ExhibitionEntryLink className="button primary" slug={slug}>
+      <ExhibitionEntryLink className="button primary" base={base}>
         {t("Enter the exhibition")} <span>↗</span>
       </ExhibitionEntryLink>
     </div>

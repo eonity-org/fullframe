@@ -7,12 +7,13 @@ import {
   type GalleryView,
 } from "@/lib/appearance";
 import { loadGallery } from "@/lib/gallery";
+import { exhibitionPath, organizationLink } from "@/lib/paths";
 import { ExhibitionGallery } from "./ExhibitionGallery";
 import { Teaser } from "./Teaser";
 import { exhibitionT } from "@/i18n/server";
 
 export type GalleryPageProps = {
-  params: Promise<{ exhibition: string; work?: string[] }>;
+  params: Promise<{ org: string; exhibition: string; work?: string[] }>;
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
 
@@ -22,9 +23,11 @@ export async function GalleryPage({
   mode,
 }: GalleryPageProps & { mode: GalleryView }) {
   const p = await params;
-  const exhibition = await getExhibition(p.exhibition);
+  const exhibition = await getExhibition(p.org, p.exhibition);
   if (!exhibition) notFound();
-  if (!(await canView(exhibition))) return <Teaser title={exhibition.title} />;
+  if (!(await canView(exhibition))) return (
+      <Teaser title={exhibition.title} organization={organizationLink(exhibition)} />
+    );
   const saved = resolveAppearance(exhibition.appearance);
   const query = new URLSearchParams();
   // Unsaved appearance previews, for those who may manage this exhibition.
@@ -45,14 +48,15 @@ export async function GalleryPage({
   // Disabled views remain unavailable through direct links as well as navigation.
   if (!appearance.enabledViews.includes(mode))
     redirect(
-      `/${exhibition.slug}/${appearance.defaultView}${query.size ? `?${query}` : ""}`,
+      `${exhibitionPath(exhibition, appearance.defaultView)}${query.size ? `?${query}` : ""}`,
     );
   try {
     const { works } = await loadGallery(exhibition);
     return (
       <ExhibitionGallery
-        slug={exhibition.slug}
+        base={exhibitionPath(exhibition)}
         title={exhibition.title}
+        organization={organizationLink(exhibition)}
         subtitle={exhibition.subtitle}
         works={works}
         mode={mode}
@@ -73,7 +77,7 @@ export async function GalleryPage({
         <p>{t("The exhibition vault is temporarily unavailable.")}</p>
         <a
           className="button"
-          href={`/${exhibition.slug}/${mode}${query.size ? `?${query}` : ""}`}
+          href={`${exhibitionPath(exhibition, mode)}${query.size ? `?${query}` : ""}`}
         >
           {t("Try again")}
         </a>

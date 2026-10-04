@@ -10,17 +10,22 @@ export default async function ExhibitionLayout({
   params,
 }: {
   children: React.ReactNode;
-  params: Promise<{ exhibition: string }>;
+  params: Promise<{ org: string; exhibition: string }>;
 }) {
-  const exhibition = await getExhibition((await params).exhibition);
+  const { org, exhibition: slug } = await params;
+  const exhibition = await getExhibition(org, slug);
   // Everything inside an exhibition — gallery and jury — speaks its language.
   const locale = exhibitionLocale(exhibition ?? {});
+  // No exhibition here: the page 404s or redirects an old address. Outside a
+  // Suspense boundary, so that happens before streaming and gets its status.
+  if (!exhibition)
+    return <I18nProvider locale={locale}>{children}</I18nProvider>;
   return (
     <I18nProvider locale={locale}>
       <Suspense>
         <ExhibitionStyle
-          appearance={resolveAppearance(exhibition?.appearance)}
-          preview={exhibition ? (await studioAccess(exhibition)) === "manage" : false}
+          appearance={resolveAppearance(exhibition.appearance)}
+          preview={(await studioAccess(exhibition)) === "manage"}
           lang={locale}
         >
           {children}

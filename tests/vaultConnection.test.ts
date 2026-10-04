@@ -67,7 +67,7 @@ test("untrusted preview parameters cannot inject CSS or unknown themes", () => {
     {
       theme: "gallery",
       typography: "sans",
-      palette: "william",
+      palette: "blue",
       layout: "salon",
       enabledViews: ["album", "salon", "wall"],
       defaultView: "salon",
