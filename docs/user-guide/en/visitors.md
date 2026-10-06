@@ -8,11 +8,11 @@ FullFrame's home page lists the exhibitions **on view**. Each poster shows the
 exhibition's title, introduction, organizer and cover photograph. Click
 **View exhibition**.
 
-![The exhibitions on view](images/visitors-home.png)
+![The exhibitions on view](../images/visitors-home.png)
 
 The organizer's name leads to their own page, with only their exhibitions:
 
-![An organization's page](images/visitors-organization.png)
+![An organization's page](../images/visitors-organization.png)
 
 **English · Español** at the top switches the site's language.
 
@@ -21,12 +21,12 @@ The organizer's name leads to their own page, with only their exhibitions:
 An exhibition opens on its entrance: the title, the curator's introduction and
 the cover. **Enter the exhibition** takes you to the photographs.
 
-![The entrance of Small Wonders](images/visitors-entrance.png)
+![The entrance of Small Wonders](../images/visitors-entrance.png)
 
 Each exhibition has its own look, chosen by its curator: light or dark, modern
 or classic typography, a colour accent.
 
-![The entrance of Pike and Shot, in the dark theme](images/visitors-entrance-dark.png)
+![The entrance of Pike and Shot, in the dark theme](../images/visitors-entrance-dark.png)
 
 ## Ways of looking
 
@@ -36,12 +36,12 @@ chooses which are offered, so you may not see all of them.
 **Gallery**: photographs with their titles and authors underneath, in rows or as
 a grid of cards.
 
-![Gallery](images/visitors-gallery.png)
+![Gallery](../images/visitors-gallery.png)
 
 **Mosaic**: the photographs packed closely together, like a photo album. Titles
 appear when you point at a photograph.
 
-![Mosaic](images/visitors-mosaic.png)
+![Mosaic](../images/visitors-mosaic.png)
 
 **Wall**: one photograph at a time, as large as your screen allows.
 
@@ -50,9 +50,9 @@ appear when you point at a photograph.
   when the curator has given them.
 - **Slideshow** moves on by itself; **Pause** stops it.
 
-![Wall](images/visitors-wall.png)
+![Wall](../images/visitors-wall.png)
 
-![Wall, dark theme](images/visitors-wall-dark.png)
+![Wall, dark theme](../images/visitors-wall-dark.png)
 
 Click a photograph in Gallery or Mosaic to see it larger: it opens on the Wall at
 that photograph, or in a larger view if the exhibition has no Wall.
@@ -67,7 +67,7 @@ many match, and the cross clears the search. When the photographs carry tags, a
 **Filters** button next to the search shows them: choose one to see only those
 photographs, or **All photographs** to go back.
 
-![Searching for "bee"](images/visitors-search.png)
+![Searching for "bee"](../images/visitors-search.png)
 
 ## Sharing
 

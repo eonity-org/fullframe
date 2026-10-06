@@ -1,6 +1,6 @@
 # Guía de uso de FullFrame
 
-*[English](../README.md) · Español*
+*[English](../en/README.md) · Español*
 
 FullFrame convierte un conjunto de fotografías en una exposición en línea. Puedes
 reunir las fotografías (las tuyas o las que envíen autores invitados), pedir a un

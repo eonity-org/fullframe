@@ -10,7 +10,7 @@ you, so keep it to yourself.
 
 The page greets you by name and says how many photographs you may send.
 
-![An author's invitation](images/authors-invited.png)
+![An author's invitation](../images/authors-invited.png)
 
 If it says submissions are closed or not open yet, your link is still valid:
 come back when the curator opens them.
@@ -25,12 +25,12 @@ come back when the curator opens them.
    *50 × 70 cm*) and **Description** are optional.
 3. Click **Add 2 photographs** (the number matches yours).
 
-![Describing two photographs](images/authors-describe.png)
+![Describing two photographs](../images/authors-describe.png)
 
 They're sent straight to the exhibition. **Your photographs** lists what you've
 sent.
 
-![Photographs sent](images/authors-sent.png)
+![Photographs sent](../images/authors-sent.png)
 
 ## Correcting or withdrawing
 
@@ -46,7 +46,7 @@ Once the curator closes submissions, your photographs are fixed.
 Click **Finish** at the top right when you're done. You can close the page. The
 curator has your photographs.
 
-![Done](images/authors-finished.png)
+![Done](../images/authors-finished.png)
 
 The page appears in the exhibition's language, chosen by the curator.
 
