@@ -1,6 +1,6 @@
-# Deploying Full Frame
+# Deploying FullFrame
 
-Full Frame is a single Next.js instance backed by one SQLite file. It targets
+FullFrame is a single Next.js instance backed by one SQLite file. It targets
 a small VM or container host — one process, one volume.
 
 ## Prerequisites
@@ -33,7 +33,7 @@ Copy `.env.example` → `.env`. Everything server-only; nothing is `NEXT_PUBLIC`
 **Local development on Docker** needs only two values: `FULLFRAME_ENCRYPTION_KEY`
 and `ADMIN_PASSWORD` (without it the studio has no login, so you can't create an
 exhibition). Every other default in `.env.example` already fits a TYDAL on
-`http://localhost:8000` and Full Frame on `http://localhost:3020`. A production
+`http://localhost:8000` and FullFrame on `http://localhost:3020`. A production
 deploy also sets `APP_URL` and the TYDAL URLs to its real origins, and should
 set `SESSION_SECRET` to its own random value (`openssl rand -base64 32`).
 Without it the cookie key is derived from `ADMIN_PASSWORD` with a published
@@ -42,7 +42,7 @@ prefix, so session cookies are only as strong as that password.
 | Var                                                             | Purpose                                                                                                                                                                                                    |
 | --------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `TYDAL_BASE_URL`                                                | Optional server alias for the local TYDAL instance (no `/api/v1`). Shared URLs on other origins are used directly.                                                                                         |
-| `TYDAL_LINK_BASE_URL`                                           | Public TYDAL prefix mapped to `TYDAL_BASE_URL` inside Docker; defaults to `TYDAL_BASE_URL`. Browser image reads use Full Frame’s `/api/vault` proxy.                                                       |
+| `TYDAL_LINK_BASE_URL`                                           | Public TYDAL prefix mapped to `TYDAL_BASE_URL` inside Docker; defaults to `TYDAL_BASE_URL`. Browser image reads use FullFrame’s `/api/vault` proxy.                                                       |
 | `FULLFRAME_ENCRYPTION_KEY`                                      | **Required.** 32-byte key (base64 or hex) that encrypts each exhibition's vault keys at rest (AES-256-GCM). `openssl rand -base64 32`. Rotating it strands stored keys (re-enter them).                    |
 | `DEV_VAULT_HASH` / `DEV_READ_VAULT_KEY` / `DEV_WRITE_VAULT_KEY` | Optional dev-seed convenience — the FullFrameSeeder prints these; `npm run db:seed` stores them on the `first-frame` exhibition. Not used in production (keys are entered per exhibition in the admin UI). |
 | `ADMIN_PASSWORD`                                                | The **installation admin**'s password — sees and manages every exhibition. Curators sign in with their TYDAL account instead (needs `TYDAL_BASE_URL`). Unset ⇒ no installation admin; set `SESSION_SECRET` then. |
@@ -54,7 +54,7 @@ prefix, so session cookies are only as strong as that password.
 
 ## Organizations and sign-in
 
-One Full Frame serves several TYDAL organizations. Curators sign into the
+One FullFrame serves several TYDAL organizations. Curators sign into the
 studio with their **TYDAL account**: TYDAL confirms who they are
 (`POST /api/v1/auth/identify` — no token is kept) and which organizations they
 belong to. Each exhibition belongs to its vault's organization, learned from the
@@ -96,7 +96,7 @@ The production image runs fine on a laptop, next to a TYDAL on
 a standalone Next.js server with `NODE_ENV=production`, a non-root user,
 `PREVIEW_MODE` forced off, and a database volume that starts empty.
 
-**Running it next to another Full Frame.** Docker Compose names a project
+**Running it next to another FullFrame.** Docker Compose names a project
 after its folder. A second clone in a folder also called `fullframe` joins the
 same project: `docker compose up` replaces the running container and reuses its
 database volume. It also competes for port 3020. Give the copy its own project
@@ -157,7 +157,7 @@ docker compose -p fullframe-prodtest down -v
 
 ## Running without Docker
 
-Full Frame can run directly on a Linux server. It is the same standalone
+FullFrame can run directly on a Linux server. It is the same standalone
 build the Docker image uses, assembled by hand. You need **Node 20 or later**
 (the image uses 22) and a C/C++ toolchain, because `better-sqlite3` compiles a
 native addon.
@@ -213,7 +213,7 @@ reachable only through the reverse proxy.
 
 ```ini
 [Unit]
-Description=Full Frame
+Description=FullFrame
 After=network.target
 
 [Service]
@@ -313,7 +313,7 @@ multi-instance deploy would move `rateLimit()` to shared storage.
 ## Security considerations
 
 - **Curators can make the server fetch URLs.** Checking a vault connection
-  fetches the pasted URL from the Full Frame server. Any signed-in curator can
+  fetches the pasted URL from the FullFrame server. Any signed-in curator can
   therefore make the server request an address of their choosing, including
   hosts on its internal network. Only give studio access to people you trust,
   and if the host can reach sensitive internal services, restrict its outbound
@@ -326,9 +326,9 @@ Report vulnerabilities as described in [SECURITY.md](SECURITY.md).
 
 ## Local Docker networking
 
-For TYDAL at `http://localhost:8000`, set `TYDAL_LINK_BASE_URL=http://localhost:8000` and `TYDAL_BASE_URL=http://host.docker.internal:8000`. Paste the normal shared URL into Full Frame. The compose file maps `host.docker.internal` to the host gateway, so this also works on Linux. `APP_URL` is Full Frame's visitor-facing origin, typically `http://localhost:3020`; it does not set the listening port.
+For TYDAL at `http://localhost:8000`, set `TYDAL_LINK_BASE_URL=http://localhost:8000` and `TYDAL_BASE_URL=http://host.docker.internal:8000`. Paste the normal shared URL into FullFrame. The compose file maps `host.docker.internal` to the host gateway, so this also works on Linux. `APP_URL` is FullFrame's visitor-facing origin, typically `http://localhost:3020`; it does not set the listening port.
 
-`FULLFRAME_ENCRYPTION_KEY` belongs to Full Frame, not to TYDAL's vault configuration. Back it up whenever you back up the database, because restoring stored credentials needs it, but store it separately (for example in a password manager) so a leaked database backup does not also leak the key.
+`FULLFRAME_ENCRYPTION_KEY` belongs to FullFrame, not to TYDAL's vault configuration. Back it up whenever you back up the database, because restoring stored credentials needs it, but store it separately (for example in a password manager) so a leaked database backup does not also leak the key.
 
 ## Schema migrations
 

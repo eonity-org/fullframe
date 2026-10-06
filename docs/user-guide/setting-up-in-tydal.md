@@ -11,7 +11,20 @@ couple of minutes.
 The commands run on the TYDAL server. The `tools/clients/fullframe.sh` wrapper in
 the TYDAL repository runs them the same way whether TYDAL runs in Docker or
 directly on the host. The full reference is in TYDAL's
-[CLI Guide](https://github.com/eonity-org/tydal/blob/main/docs/CLI.md#photo-exhibitions-full-frame).
+[CLI Guide](https://github.com/eonity-org/tydal/blob/main/docs/CLI.md#photo-exhibitions-fullframe).
+
+**Without the wrapper** (a server set up by hand, as in TYDAL's
+[DEPLOYMENT.md](https://github.com/eonity-org/tydal/blob/main/DEPLOYMENT.md#on-a-server-by-hand)),
+run the same artisan commands in the installation's app container, from the
+folder with its `compose.yml`:
+
+```bash
+docker compose exec -u application -w /var/www/html app php artisan exhibitions:setup --org=atlas --language=en
+docker compose exec -u application -w /var/www/html app php artisan exhibitions:create --org=atlas --name="Small Wonders" --curator=ana@example.org
+```
+
+Keep `-w /var/www/html`: without it, PHP answers *Could not open input file:
+artisan*.
 
 ## Once per organization
 
@@ -46,7 +59,7 @@ and `--role=admin` also lets them administer the organization in TYDAL.
 At the end the command prints:
 
 ```
-Paste into Full Frame → "Connect an exhibition":
+Paste into FullFrame → "Connect an exhibition":
   Shared vault URL : https://tydal.example.org/v/atlas/small-wonders
   Read key         : tvk_…
   Write key        : tvk_…

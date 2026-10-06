@@ -12,8 +12,22 @@ Los comandos se ejecutan en el servidor de TYDAL. El script
 `tools/clients/fullframe.sh` del repositorio de TYDAL los ejecuta igual tanto si
 TYDAL funciona en Docker como directamente en el servidor. La referencia
 completa está en la
-[guía de la CLI](https://github.com/eonity-org/tydal/blob/main/docs/CLI.md#photo-exhibitions-full-frame)
+[guía de la CLI](https://github.com/eonity-org/tydal/blob/main/docs/CLI.md#photo-exhibitions-fullframe)
 de TYDAL (en inglés).
+
+**Sin el script** (en un servidor montado a mano, como en el
+[DEPLOYMENT.md](https://github.com/eonity-org/tydal/blob/main/DEPLOYMENT.md#on-a-server-by-hand)
+de TYDAL, en inglés), los mismos comandos de artisan se ejecutan en el
+contenedor de la aplicación de esa instalación, desde la carpeta de su
+`compose.yml`:
+
+```bash
+docker compose exec -u application -w /var/www/html app php artisan exhibitions:setup --org=atlas --language=es
+docker compose exec -u application -w /var/www/html app php artisan exhibitions:create --org=atlas --name="Small Wonders" --curator=ana@example.org
+```
+
+No quites `-w /var/www/html`. Sin él, PHP responde *Could not open input file:
+artisan*.
 
 ## Una vez por organización
 
@@ -48,7 +62,7 @@ organización. `--role=viewer` le da en cambio un taller de solo lectura, y
 Al final, el comando muestra:
 
 ```
-Paste into Full Frame → "Connect an exhibition":
+Paste into FullFrame → "Connect an exhibition":
   Shared vault URL : https://tydal.example.org/v/atlas/small-wonders
   Read key         : tvk_…
   Write key        : tvk_…
