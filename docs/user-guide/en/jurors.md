@@ -14,7 +14,7 @@ back to it later.
 The jury room shows one photograph at a time, with its title and its position
 (*1 / 3*).
 
-![Starting to score](images/jurors-scoring-start.png)
+![Starting to score](../images/jurors-scoring-start.png)
 
 For each photograph:
 
@@ -28,13 +28,13 @@ For each photograph:
 Scores and notes **save automatically**. The line under the note says *Saving…*,
 then *Saved*. The bar at the top counts how many you've scored.
 
-![Scoring a photograph, with a note](images/jurors-scoring.png)
+![Scoring a photograph, with a note](../images/jurors-scoring.png)
 
 You can go back with **← Previous**, or open **View all photographs** to jump to
 any of them. The overview marks which ones you've scored and which are still to
 score.
 
-![Your progress](images/jurors-progress.png)
+![Your progress](../images/jurors-progress.png)
 
 You can change any score while judging is open. After the last photograph,
 **Review scores →** brings up the overview.

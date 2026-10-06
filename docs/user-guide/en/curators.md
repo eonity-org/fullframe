@@ -20,7 +20,7 @@ exhibitions of your TYDAL organizations:
 The person who installed FullFrame also has an **installation admin** password,
 which sees every exhibition of every organization.
 
-![The studio: your exhibitions, and Connect an exhibition](images/curators-exhibitions.png)
+![The studio: your exhibitions, and Connect an exhibition](../images/curators-exhibitions.png)
 
 The studio speaks **English or Español**; switch at the top right. This is your
 own language, separate from the exhibition's language (below).
@@ -37,7 +37,7 @@ In **Connect an exhibition**:
 1. Paste the **shared vault URL**.
 2. Open **Access keys** and paste the **read key** and the **write key**.
 
-   ![The vault's address and keys, ready to connect](images/curators-connect.png)
+   ![The vault's address and keys, ready to connect](../images/curators-connect.png)
 
 3. Click **Connect vault**. FullFrame checks the vault and shows what it found
    (*Small Wonders · 0 photographs · Private vault*).
@@ -66,7 +66,7 @@ The **Stage** bar says where the exhibition is:
 Below the stage, three counters show the number of photographs, whether the
 exhibition is private or published, and the jury's size.
 
-![The Setup page during preparation](images/curators-setup.png)
+![The Setup page during preparation](../images/curators-setup.png)
 
 Setup has four numbered boxes, which you work through in order. The ones that
 don't apply yet are dimmed but still readable.
@@ -104,7 +104,7 @@ Box **2 · Photographs** is for adding photographs yourself.
    visitors and jurors will know the photograph.
 3. Click **Add 1 photograph** (or *Add 3 photographs*…).
 
-![Describing a photograph before adding it](images/curators-add-photographs.png)
+![Describing a photograph before adding it](../images/curators-add-photographs.png)
 
 The photographs go straight into the exhibition's vault in TYDAL, exactly as you
 wrote them, and appear once TYDAL has prepared their previews.
@@ -124,18 +124,18 @@ Box **3 · Invite a jury** brings in a second perspective.
 3. When the photographs are all in (submissions closed or skipped),
    **Start judging**.
 
-![Two jurors invited](images/curators-jury-invited.png)
+![Two jurors invited](../images/curators-jury-invited.png)
 
 Each juror gives every photograph one score, **Overall impression**, from 1 to
 5, and can keep a private note. Their row shows how many votes they've cast. You
 can give a juror a **New link** or **Revoke** them at any time.
 
-![Judging under way](images/curators-judging.png)
+![Judging under way](../images/curators-judging.png)
 
 When you're ready, **Close judging**. Scores become read-only, and the exhibition
 moves to *Selecting*. You can reopen judging while you're still choosing.
 
-![Judging closed: the exhibition moves to Selecting](images/curators-judging-closed.png)
+![Judging closed: the exhibition moves to Selecting](../images/curators-judging-closed.png)
 
 No jury? Click **Skip the jury →** to go straight to selecting. **Back to
 preparing** returns to the Preparing stage if you need to add photographs.
@@ -163,7 +163,7 @@ all** / **Clear selection**. If there was a jury, each photograph shows its
 average score out of 5 to help you; the choice is always yours. **Save
 selection**, then **Next: appearance & publish →**.
 
-![Writing the texts and choosing the photographs](images/curators-selection.png)
+![Writing the texts and choosing the photographs](../images/curators-selection.png)
 
 **Download jury record** at the bottom of the page saves every score and note,
 as a data file (JSON) for your records or for analysis.
@@ -187,17 +187,17 @@ as a data file (JSON) for your records or for analysis.
 The **preview** shows your real photographs. Switch between views to compare.
 Visitors only see a change once you click **Apply style**.
 
-![Appearance & publish](images/curators-appearance.png)
+![Appearance & publish](../images/curators-appearance.png)
 
 When everything is ready, click **Publish exhibition**. FullFrame asks you to
 confirm: the selected photographs become public and jury scoring closes.
 
-![Ready to open the doors?](images/curators-publish-confirm.png)
+![Ready to open the doors?](../images/curators-publish-confirm.png)
 
 Click **Publish now**. The stage turns **Live**: *Everyone can see it.* **Visit
 exhibition** opens it, and it appears on FullFrame's home page.
 
-![The exhibition is live](images/curators-live.png)
+![The exhibition is live](../images/curators-live.png)
 
 If publishing stops halfway (for example TYDAL accepted the selection but didn't
 open it), FullFrame says so and you can simply retry.
@@ -209,7 +209,7 @@ public exhibition closes and TYDAL makes the vault private again. Change the
 selection, texts or style, then publish again. Closing never deletes
 photographs or scores.
 
-![Closing an exhibition](images/curators-close-confirm.png)
+![Closing an exhibition](../images/curators-close-confirm.png)
 
 ## Connection settings and deleting
 
