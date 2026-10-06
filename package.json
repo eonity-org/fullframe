@@ -1,6 +1,6 @@
 {
   "name": "fullframe",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "private": true,
   "type": "module",
   "description": "FullFrame — photo exhibition & voting platform built on TYDAL",
