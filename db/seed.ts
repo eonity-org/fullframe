@@ -41,7 +41,7 @@ async function main() {
       // exhibition title is already the masthead.
       welcomeContent: [
         'Twenty-four photographs, six photographers, one wall.',
-        'First Frame is the inaugural Full Frame exhibition — currently under',
+        'First Frame is the inaugural FullFrame exhibition — currently under',
         'jury evaluation ahead of the public opening.',
       ].join('\n'),
     })

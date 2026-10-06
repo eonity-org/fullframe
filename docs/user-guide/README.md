@@ -1,5 +1,7 @@
 # FullFrame user guide
 
+*English · [Español](es/README.md)*
+
 FullFrame turns a set of photographs into an online exhibition. You can gather
 the photographs (your own, or sent by invited authors), have a jury score them
 if you want, choose what to show, give the exhibition its look, and open it to
