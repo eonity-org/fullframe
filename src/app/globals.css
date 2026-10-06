@@ -718,6 +718,9 @@ a.wordmark:hover .wordmark-name {
   align-items: center;
   justify-content: center;
   column-gap: 16px;
+  /* The credit's line stays even when a photograph has none (steady caption). */
+  font-size: 15px;
+  min-height: 1lh;
 }
 .viewer-caption p,
 .viewer-caption .quiet-button {
@@ -731,7 +734,10 @@ a.wordmark:hover .wordmark-name {
   min-height: 36px;
 }
 /* The description: centered under the title like the rest of the caption,
-   in a readable measure, clamped to three lines until "more". */
+   in a readable measure, clamped to three lines until "more". Clamped, it
+   always takes those three lines (and the button its place), so the caption
+   — and the photograph above it — keep their size from one photograph to
+   the next. */
 .viewer-description {
   max-width: 65ch;
   margin: 6px auto 0;
@@ -747,6 +753,7 @@ a.wordmark:hover .wordmark-name {
   line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  min-height: calc(3 * 1.55em);
 }
 .viewer-caption .viewer-description p.expanded {
   display: block;
@@ -757,6 +764,9 @@ a.wordmark:hover .wordmark-name {
 .viewer-description .quiet-button {
   min-height: 32px;
   padding: 4px 10px;
+}
+.viewer-description .viewer-more-unused {
+  visibility: hidden;
 }
 .viewer-details {
   width: 100%;
