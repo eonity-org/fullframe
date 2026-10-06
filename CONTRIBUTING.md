@@ -1,6 +1,6 @@
-# Contributing to Full Frame
+# Contributing to FullFrame
 
-Thanks for your interest in Full Frame. Bug reports, fixes, translations and
+Thanks for your interest in FullFrame. Bug reports, fixes, translations and
 improvements to accessibility and documentation are all welcome.
 
 ## Before you start
@@ -8,7 +8,7 @@ improvements to accessibility and documentation are all welcome.
 - For anything larger than a small fix, open an issue first so we can agree on
   the approach before you spend time on it.
 - Security problems go through [SECURITY.md](SECURITY.md), not public issues.
-- Full Frame is a client of TYDAL's vault boundary. Changes that need something
+- FullFrame is a client of TYDAL's vault boundary. Changes that need something
   new from TYDAL belong in the [TYDAL repository](https://github.com/eonity-org/tydal).
 
 ## Development setup

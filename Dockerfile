@@ -1,4 +1,4 @@
-# Full Frame — production image (roadmap E5.1).
+# FullFrame — production image (roadmap E5.1).
 # Multi-stage: deps (native better-sqlite3 build) → build → slim runner.
 
 FROM node:22-slim AS deps

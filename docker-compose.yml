@@ -1,4 +1,4 @@
-# Full Frame — production stack (roadmap E5.1).
+# FullFrame — production stack (roadmap E5.1).
 #   docker compose up -d --build
 # Reads secrets from .env (see .env.example). The exhibition DB is a named
 # volume — back it up with the schedule in DEPLOY.md.

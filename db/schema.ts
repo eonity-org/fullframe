@@ -118,7 +118,7 @@ export const exhibitions = sqliteTable(
     writebackAt: integer("writeback_at", { mode: "timestamp" }),
     /**
      * The immutable scoring record (final ranking + methodology), persisted at
-     * the opening. Full Frame owns scoring, so this — not a TYDAL resource — is
+     * the opening. FullFrame owns scoring, so this — not a TYDAL resource — is
      * the record: the exhibition is phase-frozen once open. Downloadable from
      * the admin. (Archiving into TYDAL would need a document-accepting
      * collection; the photo collection rejects JSON by design.)

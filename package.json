@@ -3,7 +3,7 @@
   "version": "0.2.1",
   "private": true,
   "type": "module",
-  "description": "Full Frame — photo exhibition & voting platform built on TYDAL",
+  "description": "FullFrame — photo exhibition & voting platform built on TYDAL",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Full Frame — Docker-only dev wrapper (the host has no Node).
+# FullFrame — Docker-only dev wrapper (the host has no Node).
 # Runs npm/node inside a disposable node:22 container with the repo mounted.
 #
 #   ./dev.sh install       npm install
@@ -19,7 +19,7 @@ TTY_FLAGS=""
 if [ -t 0 ]; then TTY_FLAGS="-it"; fi
 
 # Only the servers publish the port, so one-off commands (typecheck, test…)
-# still run while another Full Frame (e.g. docker compose) holds it.
+# still run while another FullFrame (e.g. docker compose) holds it.
 PORT_FLAGS=""
 case "${1:-dev}" in dev|start) PORT_FLAGS="-p $PORT:3020" ;; esac
 

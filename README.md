@@ -1,8 +1,8 @@
-# Full Frame
+# FullFrame
 
-**Full Frame turns TYDAL vaults into curated photography exhibitions.**
+**FullFrame turns TYDAL vaults into curated photography exhibitions.**
 
-Photography exhibitions built on TYDAL. Full Frame presents photographs through a vault, with an optional jury and a small curator studio. TYDAL remains the repository of record for photographs, workspaces and vault membership.
+Photography exhibitions built on TYDAL. FullFrame presents photographs through a vault, with an optional jury and a small curator studio. TYDAL remains the repository of record for photographs, workspaces and vault membership.
 
 ## Run
 
@@ -33,9 +33,9 @@ See [DEPLOY.md](DEPLOY.md) for environment, backups and container networking, [t
 
 ## Boundary and storage
 
-The shared URL is the connection entry point. Full Frame resolves a human vault address once and stores its machine hash. Subsequent reads, image URLs, votes, notes and selections use vault-scoped hashes. Human resource slugs are labels, never machine identity; internal TYDAL identifiers and storage URLs are not a client contract.
+The shared URL is the connection entry point. FullFrame resolves a human vault address once and stores its machine hash. Subsequent reads, image URLs, votes, notes and selections use vault-scoped hashes. Human resource slugs are labels, never machine identity; internal TYDAL identifiers and storage URLs are not a client contract.
 
-The Next.js server calls TYDAL through `@tydal/client`. Browser reads use a local vault proxy; pre-opening access requires a curator or juror session. Read/write keys are encrypted in SQLite with Full Frame's own `FULLFRAME_ENCRYPTION_KEY`, never sent to the browser. Public exhibitions use TYDAL's anonymous access.
+The Next.js server calls TYDAL through `@tydal/client`. Browser reads use a local vault proxy; pre-opening access requires a curator or juror session. Read/write keys are encrypted in SQLite with FullFrame's own `FULLFRAME_ENCRYPTION_KEY`, never sent to the browser. Public exhibitions use TYDAL's anonymous access.
 
 Publishing verifies the saved hashes against the current vault, calls `activate` and then `open`, and records the local opening only after both succeed. Closing calls `close`, which makes the vault private and restores its original workspace projection. Neither operation deletes photographs from TYDAL or Elasticsearch.
 
@@ -45,7 +45,7 @@ Gallery cards and contact sheets use TYDAL's advertised `medium` preview renditi
 (800 px), falling back to `small` or `thumbnail` when needed. Wall, the lightbox,
 the jury's full photograph and the welcome cover use `large` (1600 px), or the
 designated original when that size is unavailable. Originals and stored cover
-references remain unchanged. Full Frame proxies these vault-issued URLs; it
+references remain unchanged. FullFrame proxies these vault-issued URLs; it
 does not resize images itself or use internal storage links.
 
 ## Translations
@@ -86,4 +86,4 @@ Contributions are welcome: see [CONTRIBUTING.md](CONTRIBUTING.md). Please report
 
 ## License
 
-Full Frame is licensed under the [Apache License 2.0](LICENSE). See [NOTICE](NOTICE) for attribution and trademark terms.
+FullFrame is licensed under the [Apache License 2.0](LICENSE). See [NOTICE](NOTICE) for attribution and trademark terms.
