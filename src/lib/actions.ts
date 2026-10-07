@@ -771,6 +771,20 @@ export async function setSubmissionLimit(
   return { ok: true };
 }
 
+/** Whether invited authors must describe each photograph they send. */
+export async function setDescriptionRequired(
+  exhibitionId: number,
+  required: boolean,
+): Promise<{ ok: true } | { error: string }> {
+  await requireManage(exhibitionId);
+  await db
+    .update(schema.exhibitions)
+    .set({ descriptionRequired: required })
+    .where(eq(schema.exhibitions.id, exhibitionId));
+  revalidatePath(`/admin/${exhibitionId}`);
+  return { ok: true };
+}
+
 export type MintAuthorResult = { ok: true } | { error: string } | null;
 
 /** Invite an author: a name, fixed from now on, and a personal link. */

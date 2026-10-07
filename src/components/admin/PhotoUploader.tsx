@@ -6,6 +6,7 @@ import {
   PHOTO_FIELDS,
   isRequired,
   missingFields,
+  type FieldRules,
   type PhotoDetails,
   type PhotoFieldKey,
 } from "@/lib/photoFields";
@@ -68,12 +69,15 @@ function DetailFields({
   values,
   disabled,
   lockAuthor,
+  rules,
   onChange,
 }: {
   values: PhotoDetails;
   disabled?: boolean;
   /** The author comes from an invitation and is shown, not edited. */
   lockAuthor?: boolean;
+  /** What the exhibition asks beyond title and author. */
+  rules: FieldRules;
   onChange: (key: PhotoFieldKey, value: string) => void;
 }) {
   const t = useT();
@@ -83,12 +87,12 @@ function DetailFields({
         <label key={field.key} className={"multiline" in field ? "wide" : undefined}>
           <span>
             {t(field.label)}
-            {!isRequired(field) && <small className="muted"> · {t("Optional")}</small>}
+            {!isRequired(field, rules) && <small className="muted"> · {t("Optional")}</small>}
           </span>
           {"multiline" in field ? (
             <textarea
               rows={3}
-              required={isRequired(field)}
+              required={isRequired(field, rules)}
               value={values[field.key] ?? ""}
               disabled={disabled}
               onChange={(e) => onChange(field.key, e.target.value)}
@@ -96,7 +100,7 @@ function DetailFields({
           ) : (
             <input
               value={values[field.key] ?? ""}
-              required={isRequired(field)}
+              required={isRequired(field, rules)}
               disabled={disabled || (lockAuthor && field.key === "author")}
               placeholder={"placeholder" in field ? t(field.placeholder) : undefined}
               onChange={(e) => onChange(field.key, e.target.value)}
@@ -118,6 +122,7 @@ export function PhotoUploader({
   author,
   remaining = null,
   showPreviews = true,
+  descriptionRequired = false,
 }: {
   /** Where photographs are sent; one is corrected or removed at `{endpoint}/{hash}`. */
   endpoint: string;
@@ -135,9 +140,12 @@ export function PhotoUploader({
   remaining?: number | null;
   /** The sent photographs' previews can be shown (the studio, not an author). */
   showPreviews?: boolean;
+  /** The exhibition asks its invited authors to describe each photograph. */
+  descriptionRequired?: boolean;
 }) {
   const t = useT();
   const router = useRouter();
+  const rules: FieldRules = { descriptionRequired };
   const [queue, setQueue] = useState<Queued[]>([]);
   const [busy, setBusy] = useState(false);
   /** Files turned away for size when chosen — never uploaded, so no time is wasted. */
@@ -203,7 +211,7 @@ export function PhotoUploader({
     window.addEventListener("beforeunload", warn);
     return () => window.removeEventListener("beforeunload", warn);
   }, [pending.length]);
-  const incomplete = pending.some((q) => missingFields(q.details).length > 0);
+  const incomplete = pending.some((q) => missingFields(q.details, rules).length > 0);
 
   const upload = async () => {
     setBusy(true);
@@ -410,6 +418,7 @@ export function PhotoUploader({
                     <div className="upload-fields">
                       <div className="form-grid">
                         <DetailFields
+                          rules={rules}
                           values={item.details}
                           disabled={locked}
                           lockAuthor={!!author}
@@ -445,7 +454,9 @@ export function PhotoUploader({
               </button>
               {incomplete && (
                 <span className="hint">
-                  {t("Give each photograph at least a title and an author to add it.")}
+                  {descriptionRequired
+                    ? t("Give each photograph a title and a description to add it.")
+                    : t("Give each photograph at least a title and an author to add it.")}
                 </span>
               )}
             </div>
@@ -525,6 +536,7 @@ export function PhotoUploader({
             <img src={viewed.preview} alt="" />
             <div className="form-grid">
               <DetailFields
+                rules={rules}
                 values={viewed.details}
                 lockAuthor={!!author}
                 disabled={busy || viewed.state === "done" || viewed.state === "uploading"}
@@ -642,6 +654,7 @@ export function PhotoUploader({
         >
           <div className="form-grid">
             <DetailFields
+              rules={rules}
               values={draft}
               lockAuthor={!!author || !!editing?.authorLocked}
               disabled={dialogPending}
@@ -664,7 +677,7 @@ export function PhotoUploader({
             </button>
             <button
               className="button primary"
-              disabled={dialogPending || missingFields(draft).length > 0}
+              disabled={dialogPending || missingFields(draft, rules).length > 0}
             >
               {dialogPending ? t("Saving…") : t("Save details")}
             </button>

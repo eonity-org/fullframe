@@ -104,6 +104,10 @@ export const exhibitions = sqliteTable(
       .default("pending"),
     /** How many photographs each invited author may send. */
     submissionLimit: integer("submission_limit").notNull().default(5),
+    /** Whether invited authors must describe each photograph (curators never must). */
+    descriptionRequired: integer("description_required", { mode: "boolean" })
+      .notNull()
+      .default(false),
     /**
      * The exhibition's language (`en` | `es`): its public pages and jury speak
      * it, since the curator writes the exhibition's own text in it. The studio

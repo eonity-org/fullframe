@@ -2,7 +2,7 @@
 
 /**
  * The submission period (overview box 1): how many photographs each author may
- * send, open / skip / close / reopen, and the invited authors — one line each,
+ * send and whether they must describe them, open / skip / close / reopen, and the invited authors — one line each,
  * with their counter, copy link and revoke. An author's name is fixed at
  * invitation.
  */
@@ -11,6 +11,7 @@ import {
   mintAuthor,
   regenerateAuthor,
   revokeAuthor,
+  setDescriptionRequired,
   setSubmissionLimit,
   setSubmissions,
   type MintAuthorResult,
@@ -33,6 +34,7 @@ export function SubmissionsPanel({
   exhibitionId,
   state,
   limit,
+  descriptionRequired,
   canOpen,
   blockedNote,
   authors,
@@ -40,6 +42,8 @@ export function SubmissionsPanel({
   exhibitionId: number;
   state: SubmissionState;
   limit: number;
+  /** Authors must describe each photograph, not only title it. */
+  descriptionRequired: boolean;
   /** Submissions can be opened now (setup, with a working write key). */
   canOpen: boolean;
   /** Why it can't, already translated (no write key, TYDAL unreachable…). */
@@ -70,24 +74,39 @@ export function SubmissionsPanel({
   return (
     <div className="submissions">
       <div className="submission-controls">
-        <label className="inline-field">
-          {t("Photographs per author")}
-          <select
-            value={limit}
-            disabled={pending}
-            onChange={(e) =>
-              act(() => setSubmissionLimit(exhibitionId, Number(e.target.value)))
-            }
-          >
-            {[...new Set([...LIMITS, limit])]
-              .sort((a, b) => a - b)
-              .map((n) => (
-                <option key={n} value={n}>
-                  {n}
-                </option>
-              ))}
-          </select>
-        </label>
+        <div className="submission-settings">
+          <label className="inline-field">
+            {t("Photographs per author")}
+            <select
+              value={limit}
+              disabled={pending}
+              onChange={(e) =>
+                act(() => setSubmissionLimit(exhibitionId, Number(e.target.value)))
+              }
+            >
+              {[...new Set([...LIMITS, limit])]
+                .sort((a, b) => a - b)
+                .map((n) => (
+                  <option key={n} value={n}>
+                    {n}
+                  </option>
+                ))}
+            </select>
+          </label>
+          <label className="inline-field">
+            {t("Description")}
+            <select
+              value={descriptionRequired ? "required" : "optional"}
+              disabled={pending}
+              onChange={(e) =>
+                act(() => setDescriptionRequired(exhibitionId, e.target.value === "required"))
+              }
+            >
+              <option value="optional">{t("Optional")}</option>
+              <option value="required">{t("Required")}</option>
+            </select>
+          </label>
+        </div>
         <div className="button-row">
           {state === "open" ? (
             <button

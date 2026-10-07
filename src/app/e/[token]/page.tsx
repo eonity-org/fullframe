@@ -100,11 +100,17 @@ export default async function Page({
               <>
                 <p className="muted">
                   {remaining > 0
-                    ? t.n(
-                        remaining,
-                        "You can send {count} more photograph. Give each one a title; you can correct the details or remove a photograph while submissions are open.",
-                        "You can send {count} more photographs. Give each one a title; you can correct the details or remove a photograph while submissions are open.",
-                      )
+                    ? exhibition.descriptionRequired
+                      ? t.n(
+                          remaining,
+                          "You can send {count} more photograph. Give each one a title and a description; you can correct the details or remove a photograph while submissions are open.",
+                          "You can send {count} more photographs. Give each one a title and a description; you can correct the details or remove a photograph while submissions are open.",
+                        )
+                      : t.n(
+                          remaining,
+                          "You can send {count} more photograph. Give each one a title; you can correct the details or remove a photograph while submissions are open.",
+                          "You can send {count} more photographs. Give each one a title; you can correct the details or remove a photograph while submissions are open.",
+                        )
                     : t(
                         "You have sent all your photographs. Remove one to send another.",
                       )}
@@ -117,6 +123,7 @@ export default async function Page({
                   author={author.name}
                   remaining={remaining}
                   showPreviews={false}
+                  descriptionRequired={exhibition.descriptionRequired}
                   addedTitle={t("Your photographs")}
                   added={added.map((photo) => ({ ...photo, preview: null }))}
                 />

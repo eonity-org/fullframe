@@ -33,8 +33,18 @@ export const PHOTO_FIELDS = [
   multiline?: boolean;
 }>;
 
+/**
+ * What an exhibition asks beyond the fixed requirements: its curator can make
+ * invited authors describe each photograph (`exhibitions.description_required`).
+ */
+export type FieldRules = { descriptionRequired?: boolean };
+
 /** Whether a field must be filled in before the photograph can be sent. */
-export function isRequired(field: (typeof PHOTO_FIELDS)[number]): boolean {
+export function isRequired(
+  field: (typeof PHOTO_FIELDS)[number],
+  rules: FieldRules = {},
+): boolean {
+  if (field.key === "description" && rules.descriptionRequired) return true;
   return "required" in field && field.required;
 }
 
@@ -54,8 +64,11 @@ export function detailsFrom(source: FormData | Record<string, unknown>): PhotoDe
 }
 
 /** The required fields still empty — none means the photograph is ready to send. */
-export function missingFields(details: PhotoDetails): PhotoFieldKey[] {
-  return PHOTO_FIELDS.filter(isRequired)
+export function missingFields(
+  details: PhotoDetails,
+  rules: FieldRules = {},
+): PhotoFieldKey[] {
+  return PHOTO_FIELDS.filter((field) => isRequired(field, rules))
     .map((f) => f.key)
     .filter((key) => !details[key]?.trim());
 }

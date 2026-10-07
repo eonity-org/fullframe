@@ -41,8 +41,16 @@ export async function POST(
   const details = { ...detailsFrom(form), author: author.name };
   if (!(image instanceof File) || !image.type.startsWith("image/"))
     return Response.json({ error: t("Choose an image file.") }, { status: 400 });
-  if (missingFields(details).length)
-    return Response.json({ error: t("Give the photograph a title.") }, { status: 400 });
+  const missing = missingFields(details, exhibition);
+  if (missing.length)
+    return Response.json(
+      {
+        error: missing.includes("name")
+          ? t("Give the photograph a title.")
+          : t("Give the photograph a description."),
+      },
+      { status: 400 },
+    );
 
   const result = await ingestPhotograph(exhibition, image, details);
   if (!result.ok) {

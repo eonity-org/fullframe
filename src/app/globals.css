@@ -3068,6 +3068,11 @@ details[open] > summary {
   flex-wrap: wrap;
   margin-bottom: 10px;
 }
+.submission-settings {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+}
 .inline-field {
   display: flex;
   align-items: center;

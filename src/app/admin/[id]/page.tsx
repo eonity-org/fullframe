@@ -132,6 +132,7 @@ export default async function Page({
             exhibitionId={id}
             state={e.submissions}
             limit={e.submissionLimit}
+            descriptionRequired={e.descriptionRequired}
             canOpen={upload === "ready"}
             blockedNote={upload === "ready" ? null : t(UPLOAD_ACCESS_NOTES[upload])}
             authors={authors.map((a) => ({

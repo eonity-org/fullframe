@@ -7,8 +7,8 @@ import Database from "better-sqlite3";
 import { runMigrations } from "../src/lib/migrate";
 
 /**
- * The schema is one squashed migration (testing phase — no data to carry
- * over). A fresh database gets every table, including each exhibition's
+ * The schema is a squashed initial migration plus the changes made since
+ * (installations now hold data, so they migrate forward). A fresh database gets every table, including each exhibition's
  * TYDAL organization, and migrating again changes nothing.
  */
 test("a fresh database gets the whole schema, and re-running migrations is harmless", () => {
@@ -30,6 +30,7 @@ test("a fresh database gets the whole schema, and re-running migrations is harml
     assert.ok(columns.includes("organization_id"));
     assert.ok(columns.includes("organization_name"));
     assert.ok(columns.includes("submissions") && columns.includes("submission_limit"));
+    assert.ok(columns.includes("description_required"));
     assert.ok(columns.includes("organization_slug"));
 
     // An exhibition slug is unique within its organization, not installation-wide.

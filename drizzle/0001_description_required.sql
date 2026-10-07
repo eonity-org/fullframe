@@ -1,0 +1,1 @@
+ALTER TABLE `exhibitions` ADD `description_required` integer DEFAULT false NOT NULL;
