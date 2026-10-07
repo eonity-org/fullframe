@@ -12,6 +12,8 @@ import { PhotoUploader } from "@/components/admin/PhotoUploader";
 import { I18nProvider } from "@/i18n/client";
 import { exhibitionLocale, exhibitionT } from "@/i18n/server";
 import { FrameMark } from "@/components/FrameMark";
+import { AiConsentToggle, ConsentForm, PrivacyNotice } from "@/components/AuthorConsent";
+import { needsNotice } from "@/lib/consent";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { robots: { index: false, follow: false } };
@@ -36,6 +38,13 @@ export default async function Page({
   const sent = open ? await authorEntries(author.id, ingested) : [];
   const added = await photoDetails(exhibition, sent).catch(() => []);
   const remaining = Math.max(0, exhibition.submissionLimit - sent.length);
+  const notice = {
+    exhibition: exhibition.title,
+    controller: exhibition.dataController ?? "",
+    contact: exhibition.dataContact ?? "",
+    notes: exhibition.privacyNotes,
+    ai: exhibition.suggestionsEnabled,
+  };
 
   return (
     <I18nProvider locale={exhibitionLocale(exhibition)}>
@@ -96,6 +105,12 @@ export default async function Page({
               <p className="hint">
                 {t("Submissions are not available right now. Try again later.")}
               </p>
+            ) : needsNotice(author) ? (
+              <>
+                <h2>{t("Data protection")}</h2>
+                <PrivacyNotice {...notice} />
+                <ConsentForm token={token} ai={exhibition.suggestionsEnabled} />
+              </>
             ) : (
               <>
                 <p className="muted">
@@ -127,6 +142,13 @@ export default async function Page({
                   addedTitle={t("Your photographs")}
                   added={added.map((photo) => ({ ...photo, preview: null }))}
                 />
+                {exhibition.suggestionsEnabled && (
+                  <AiConsentToggle token={token} agreed={!!author.aiConsentAt} />
+                )}
+                <details className="privacy-reread">
+                  <summary>{t("Data protection notice")}</summary>
+                  <PrivacyNotice {...notice} />
+                </details>
               </>
             )}
           </section>

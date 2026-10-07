@@ -30,7 +30,13 @@ test("a fresh database gets the whole schema, and re-running migrations is harml
     assert.ok(columns.includes("organization_id"));
     assert.ok(columns.includes("organization_name"));
     assert.ok(columns.includes("submissions") && columns.includes("submission_limit"));
-    assert.ok(columns.includes("description_required"));
+    for (const column of ["description_required", "suggestions_enabled", "data_controller", "data_contact", "privacy_notes"])
+      assert.ok(columns.includes(column), `missing exhibitions.${column}`);
+    const authorColumns = (db.prepare("pragma table_info(authors)").all() as { name: string }[]).map((c) => c.name);
+    for (const column of ["notice_accepted_at", "ai_consent_at", "consent_version"])
+      assert.ok(authorColumns.includes(column), `missing authors.${column}`);
+    const submissionColumns = (db.prepare("pragma table_info(submissions)").all() as { name: string }[]).map((c) => c.name);
+    assert.ok(submissionColumns.includes("suggested"));
     assert.ok(columns.includes("organization_slug"));
 
     // An exhibition slug is unique within its organization, not installation-wide.

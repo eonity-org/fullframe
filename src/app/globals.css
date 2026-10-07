@@ -2849,8 +2849,98 @@ details[open] > summary {
   gap: 12px;
   min-width: 0;
 }
-.photo-uploader .form-grid label.wide {
+.photo-uploader .form-grid .wide {
   grid-column: 1 / -1;
+}
+.detail-field {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+/* AITY's proposal under a field in the edit form: what it suggests (or what
+   "Use" replaced), and the button that swaps it in. */
+.field-suggestion {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  margin: 0;
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: var(--accent-soft);
+  font-size: 13px;
+}
+.field-suggestion-label {
+  color: var(--accent-dark);
+  font-weight: 600;
+}
+.field-suggestion-text {
+  flex: 1 1 12em;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.field-suggestion .quiet-button {
+  padding: 2px 8px;
+  min-height: 0;
+  font-size: 13px;
+}
+/* Box 1: who is responsible for the authors' data. */
+.privacy-details {
+  margin: 18px 0;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--room);
+}
+.privacy-details h3 {
+  margin: 0 0 8px;
+  font-size: 15px;
+}
+.privacy-details .form-grid .wide {
+  grid-column: 1 / -1;
+}
+.privacy-summary {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0;
+}
+/* The author page: the data protection notice and the consent answers. */
+.privacy-notice p {
+  max-width: 68ch;
+  line-height: 1.55;
+}
+.privacy-notes {
+  white-space: pre-line;
+}
+.consent-form {
+  display: grid;
+  gap: 14px;
+  margin-top: 18px;
+}
+.consent-form label.check {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-weight: 400;
+  max-width: 68ch;
+}
+.consent-form label.check input {
+  margin-top: 3px;
+}
+.ai-consent {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  margin: 18px 0 0;
+}
+.privacy-reread {
+  margin-top: 18px;
+}
+.suggestion-status {
+  margin: 0 0 12px;
 }
 .upload-item progress {
   width: 100%;

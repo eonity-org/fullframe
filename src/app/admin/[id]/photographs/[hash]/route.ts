@@ -1,15 +1,16 @@
 /**
  * Correct (PATCH) or remove (DELETE) a photograph the curator added here —
- * the vault's `update` / `withdraw` ops. Only during setup; TYDAL itself
+ * the vault's `update` / `withdraw` ops — and read what TYDAL's AITY proposes
+ * as its title and description (GET), which the edit form offers beside them. Only during setup; TYDAL itself
  * refuses any photograph that didn't arrive through this vault's `ingest`.
  * A photograph an invited author sent keeps that author's name.
  */
 import { eq } from "drizzle-orm";
 import { db, schema } from "@db/index";
 import { studioAccess, studioSession } from "@/lib/admin";
-import { updatePhotograph, withdrawPhotograph } from "@/lib/uploads";
+import { photoSuggestion, updatePhotograph, withdrawPhotograph } from "@/lib/uploads";
 import { detailsFrom, missingFields } from "@/lib/photoFields";
-import { forgetSubmission, keepAuthor } from "@/lib/authors";
+import { forgetSubmission, keepAuthor, submittedBy } from "@/lib/authors";
 import { log } from "@/lib/log";
 import { viewerT } from "@/i18n/server";
 
@@ -52,6 +53,19 @@ async function setupExhibition(id: number) {
       ),
     };
   return { t, exhibition };
+}
+
+export async function GET(_request: Request, { params }: Context) {
+  const { id: idRaw, hash } = await params;
+  const gate = await setupExhibition(Number(idRaw));
+  if ("error" in gate) return gate.error;
+  const { exhibition } = gate;
+  // An author who withdrew consent: what AITY proposed is no longer used.
+  const author = (await submittedBy([hash])).get(hash);
+  if (!exhibition.suggestionsEnabled || (author && !author.aiConsentAt))
+    return Response.json({ suggestion: null });
+  const suggestion = await photoSuggestion(exhibition, hash);
+  return Response.json({ suggestion });
 }
 
 export async function PATCH(request: Request, { params }: Context) {

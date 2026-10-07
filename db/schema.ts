@@ -109,6 +109,25 @@ export const exhibitions = sqliteTable(
       .notNull()
       .default(false),
     /**
+     * Whether TYDAL's AITY proposes a title and description for the
+     * photographs: the curator's own, and an invited author's only with that
+     * author's consent. Fixed while submissions are open (the authors' form
+     * depends on it).
+     */
+    suggestionsEnabled: integer("suggestions_enabled", { mode: "boolean" })
+      .notNull()
+      .default(false),
+    /**
+     * Data protection, for the notice every invited author accepts before
+     * sending: who is responsible for the data (the organizer), where to
+     * exercise rights, and anything else the organizer must say (the AI
+     * service and where it runs, how long photographs are kept…). Required to
+     * open submissions.
+     */
+    dataController: text("data_controller"),
+    dataContact: text("data_contact"),
+    privacyNotes: text("privacy_notes"),
+    /**
      * The exhibition's language (`en` | `es`): its public pages and jury speak
      * it, since the curator writes the exhibition's own text in it. The studio
      * follows the curator's own language instead (src/i18n/server.ts).
@@ -224,6 +243,15 @@ export const authors = sqliteTable("authors", {
   /** The raw token, kept so the curator can re-copy the link (as for jurors). */
   token: text("token"),
   revokedAt: integer("revoked_at", { mode: "timestamp" }),
+  /**
+   * The author's record of consent: when they accepted the data protection
+   * notice (required to send anything), and when they agreed to AI processing
+   * (null: they didn't, or withdrew). `consentVersion` names the notice text
+   * they saw (src/lib/consent.ts).
+   */
+  noticeAcceptedAt: integer("notice_accepted_at", { mode: "timestamp" }),
+  aiConsentAt: integer("ai_consent_at", { mode: "timestamp" }),
+  consentVersion: text("consent_version"),
   ...timestamps,
 });
 
@@ -234,5 +262,7 @@ export const submissions = sqliteTable("submissions", {
     .notNull()
     .references(() => authors.id),
   resourceHash: text("resource_hash").notNull().unique(),
+  /** Sent to TYDAL with `suggest` — the author had agreed to AI processing. */
+  suggested: integer("suggested", { mode: "boolean" }).notNull().default(false),
   ...timestamps,
 });

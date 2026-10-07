@@ -133,6 +133,12 @@ export default async function Page({
             state={e.submissions}
             limit={e.submissionLimit}
             descriptionRequired={e.descriptionRequired}
+            suggestionsEnabled={e.suggestionsEnabled}
+            privacy={{
+              controller: e.dataController,
+              contact: e.dataContact,
+              notes: e.privacyNotes,
+            }}
             canOpen={upload === "ready"}
             blockedNote={upload === "ready" ? null : t(UPLOAD_ACCESS_NOTES[upload])}
             authors={authors.map((a) => ({
@@ -141,6 +147,7 @@ export default async function Page({
               url: a.token ? authorUrl(a.token) : null,
               sent: [...sentBy.values()].filter((s) => s.id === a.id).length,
               revoked: !!a.revokedAt,
+              aiConsent: !!a.aiConsentAt && !!a.noticeAcceptedAt,
             }))}
           />
         )}
@@ -171,6 +178,7 @@ export default async function Page({
               maxUploadBytes={maxUploadBytes}
               note={upload === "ready" ? null : t(UPLOAD_ACCESS_NOTES[upload])}
               addedTitle={t("In this exhibition")}
+              suggestions={e.suggestionsEnabled}
               added={added.map((photo) => ({
                 ...photo,
                 preview: previews.get(photo.hash) ?? null,

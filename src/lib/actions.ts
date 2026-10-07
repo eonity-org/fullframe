@@ -32,6 +32,7 @@ import {
   type Appearance,
 } from "./appearance";
 import { encryptSecret, decryptSecret } from "./crypto";
+import { privacyReady } from "./consent";
 import { english, isLocale } from "@/i18n/core";
 import { exhibitionT, viewerLocale, viewerT } from "@/i18n/server";
 
@@ -746,6 +747,12 @@ export async function setSubmissions(
     }))
   )
     return { error: t("Invite an author first: nobody could send photographs yet.") };
+  if (state === "open" && !privacyReady(exhibition))
+    return {
+      error: t(
+        "Say who is responsible for the authors' data, and how to reach them, before opening submissions.",
+      ),
+    };
   await db
     .update(schema.exhibitions)
     .set({ submissions: state })
@@ -766,6 +773,64 @@ export async function setSubmissionLimit(
   await db
     .update(schema.exhibitions)
     .set({ submissionLimit: limit })
+    .where(eq(schema.exhibitions.id, exhibitionId));
+  revalidatePath(`/admin/${exhibitionId}`);
+  return { ok: true };
+}
+
+/**
+ * Whether AITY proposes titles and descriptions. Fixed while submissions are
+ * open: the authors' form, and what they agreed to, depend on it.
+ */
+export async function setSuggestionsEnabled(
+  exhibitionId: number,
+  enabled: boolean,
+): Promise<{ ok: true } | { error: string }> {
+  await requireManage(exhibitionId);
+  const t = await viewerT();
+  const exhibition = await db.query.exhibitions.findFirst({
+    where: eq(schema.exhibitions.id, exhibitionId),
+  });
+  if (!exhibition) return { error: t("This exhibition no longer exists.") };
+  if (exhibition.submissions === "open")
+    return { error: t("Close submissions to change AI suggestions.") };
+  await db
+    .update(schema.exhibitions)
+    .set({ suggestionsEnabled: enabled })
+    .where(eq(schema.exhibitions.id, exhibitionId));
+  revalidatePath(`/admin/${exhibitionId}`);
+  return { ok: true };
+}
+
+export type PrivacyResult = { ok: true } | { error: string } | null;
+
+/**
+ * The data protection details every invited author reads before sending:
+ * who is responsible (required), how to reach them (required), and anything
+ * else the organizer must tell them. Fixed while submissions are open.
+ */
+export async function savePrivacy(
+  exhibitionId: number,
+  _previous: PrivacyResult,
+  formData: FormData,
+): Promise<PrivacyResult> {
+  await requireManage(exhibitionId);
+  const t = await viewerT();
+  const exhibition = await db.query.exhibitions.findFirst({
+    where: eq(schema.exhibitions.id, exhibitionId),
+  });
+  if (!exhibition) return { error: t("This exhibition no longer exists.") };
+  if (exhibition.submissions === "open")
+    return { error: t("Close submissions to change the data protection notice.") };
+  const read = (key: string, max: number) =>
+    String(formData.get(key) ?? "").trim().slice(0, max) || null;
+  await db
+    .update(schema.exhibitions)
+    .set({
+      dataController: read("dataController", 200),
+      dataContact: read("dataContact", 200),
+      privacyNotes: read("privacyNotes", 4000),
+    })
     .where(eq(schema.exhibitions.id, exhibitionId));
   revalidatePath(`/admin/${exhibitionId}`);
   return { ok: true };
