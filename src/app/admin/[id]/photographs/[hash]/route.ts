@@ -1,7 +1,8 @@
 /**
  * Correct (PATCH) or remove (DELETE) a photograph the curator added here —
- * the vault's `update` / `withdraw` ops — and read what TYDAL's AITY proposes
- * as its title and description (GET), which the edit form offers beside them. Only during setup; TYDAL itself
+ * the vault's `update` / `withdraw` ops — and read what the edit form offers
+ * beside its title and description (GET): what TYDAL's AITY proposes, and for
+ * an author's photograph what the author sent. Only during setup; TYDAL itself
  * refuses any photograph that didn't arrive through this vault's `ingest`.
  * A photograph an invited author sent keeps that author's name.
  */
@@ -10,7 +11,7 @@ import { db, schema } from "@db/index";
 import { studioAccess, studioSession } from "@/lib/admin";
 import { photoSuggestion, updatePhotograph, withdrawPhotograph } from "@/lib/uploads";
 import { detailsFrom, missingFields } from "@/lib/photoFields";
-import { forgetSubmission, keepAuthor, submittedBy } from "@/lib/authors";
+import { forgetSubmission, keepAuthor, sentByAuthor, submittedBy } from "@/lib/authors";
 import { log } from "@/lib/log";
 import { viewerT } from "@/i18n/server";
 
@@ -60,12 +61,13 @@ export async function GET(_request: Request, { params }: Context) {
   const gate = await setupExhibition(Number(idRaw));
   if ("error" in gate) return gate.error;
   const { exhibition } = gate;
+  const sent = await sentByAuthor(hash);
   // An author who withdrew consent: what AITY proposed is no longer used.
   const author = (await submittedBy([hash])).get(hash);
   if (!exhibition.suggestionsEnabled || (author && !author.aiConsentAt))
-    return Response.json({ suggestion: null });
+    return Response.json({ suggestion: null, sent });
   const suggestion = await photoSuggestion(exhibition, hash);
-  return Response.json({ suggestion });
+  return Response.json({ suggestion, sent });
 }
 
 export async function PATCH(request: Request, { params }: Context) {

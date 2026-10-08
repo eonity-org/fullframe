@@ -30,6 +30,12 @@ export type AddedPhoto = PhotoDetails & {
   large?: string | null;
   /** Sent by an invited author: the author's name can't be changed. */
   authorLocked?: boolean;
+  /**
+   * An author's photograph, with AI suggestions on: whether the author agrees
+   * to AI processing now (AITY's proposals are used only if so). Absent
+   * otherwise.
+   */
+  aiConsent?: boolean;
 };
 
 /** The fields AITY proposes, and the text offered beside each in the edit form. */
@@ -286,9 +292,13 @@ export function PhotoUploader({
 
   // AITY's proposals for the photograph being edited, offered beside its
   // title and description: "Use" swaps one in, and the text it replaced stays
-  // offered, so the swap can be undone until the details are saved.
+  // offered, so the swap can be undone until the details are saved. Asked for
+  // an author's photograph even with AITY off: the same answer carries what
+  // the author sent, which stays offered for good.
   const suggestion = useSuggestion(
-    suggestions && editing ? `${endpoint}/${encodeURIComponent(editing.hash)}` : null,
+    (suggestions || editing?.authorLocked) && editing
+      ? `${endpoint}/${encodeURIComponent(editing.hash)}`
+      : null,
   );
   const [alternatives, setAlternatives] = useState<
     Partial<Record<Suggestible, Alternative>>
@@ -316,8 +326,51 @@ export function PhotoUploader({
     }));
   };
   const offered = (key: Suggestible) => {
+    // The author's own words, whenever the field no longer holds them.
+    const sent = suggestion.sent?.[key]?.trim();
+    const showSent = !!sent && sent !== (draft[key]?.trim() ?? "");
     const alternative = alternatives[key];
-    if (!alternative) return null;
+    // "Before" would only repeat the author's line.
+    const showAlternative =
+      !!alternative && !(showSent && alternative.kind === "previous" && alternative.text === sent);
+    if (!showSent && !showAlternative) return null;
+    return (
+      <>
+        {showSent && (
+          <p className="field-suggestion author-sent">
+            <span className="field-suggestion-label">{t("The author sent")}</span>
+            <span className="field-suggestion-text">{sent}</span>
+            <button
+              type="button"
+              className="quiet-button"
+              disabled={dialogPending}
+              onClick={() => takeSent(key, sent)}
+            >
+              {t("Use")}
+            </button>
+          </p>
+        )}
+        {showAlternative && alternative && offeredAlternative(key, alternative)}
+      </>
+    );
+  };
+  // Back to the author's words; what the field held (or else AITY's proposal)
+  // stays offered, as with any swap.
+  const takeSent = (key: Suggestible, sent: string) => {
+    const current = draft[key]?.trim() ?? "";
+    const proposed = suggestion.status === "done" ? suggestion[key]?.trim() : undefined;
+    setDraft((d) => ({ ...d, [key]: sent }));
+    setAlternatives((a) => ({
+      ...a,
+      [key]:
+        current && current !== sent
+          ? { text: current, kind: current === proposed ? "suggested" : "previous" }
+          : proposed && proposed !== sent
+            ? { text: proposed, kind: "suggested" }
+            : undefined,
+    }));
+  };
+  const offeredAlternative = (key: Suggestible, alternative: Alternative) => {
     return (
       <p className="field-suggestion">
         <span className="field-suggestion-label">
@@ -335,6 +388,8 @@ export function PhotoUploader({
       </p>
     );
   };
+
+  const editingImage = editing ? editing.large || editing.preview : null;
 
   const closeDialog = () => {
     setEditing(null);
@@ -561,6 +616,12 @@ export function PhotoUploader({
                   {photo.author && !author && (
                     <small className="muted"> · {photo.author}</small>
                   )}
+                  {suggestions && photo.aiConsent !== undefined && (
+                    <small className="muted">
+                      {" · "}
+                      {photo.aiConsent ? t("AI: agreed") : t("AI: not agreed")}
+                    </small>
+                  )}
                   {showPreviews && !photo.preview && (
                     <small className="upload-state ok">
                       {t("Added — TYDAL is preparing the preview.")}
@@ -709,8 +770,23 @@ export function PhotoUploader({
         open={!!editing}
         pending={dialogPending}
         onCancel={closeDialog}
+        // The photograph beside the fields, where there is one to show (the
+        // author's own page has no previews).
+        className={editingImage ? "edit-dialog" : undefined}
         title={t("Edit “{title}”", { title: editing?.name ?? "" })}
       >
+        <div className={editingImage ? "edit-layout" : undefined}>
+        {editingImage && (
+          <div className="edit-photo">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={editingImage} alt="" />
+            {editing?.aiConsent !== undefined && suggestions && (
+              <p className="muted">
+                {editing.aiConsent ? t("AI: agreed") : t("AI: not agreed")}
+              </p>
+            )}
+          </div>
+        )}
         <form
           className="stack-form"
           onSubmit={(e) => {
@@ -760,6 +836,7 @@ export function PhotoUploader({
             </button>
           </div>
         </form>
+        </div>
       </ConfirmationDialog>
 
       <ConfirmationDialog

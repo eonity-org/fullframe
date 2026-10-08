@@ -79,6 +79,9 @@ export function SubmissionsPanel({
 
   // Like the jury: nothing to open until someone holds an invitation.
   const invited = authors.some((a) => !a.revoked);
+  // Opening needs an author, so closed with nobody ever invited was skipped:
+  // there is nothing to reopen, only to open.
+  const skipped = state === "closed" && authors.length === 0;
   // Nor until authors can be told who is responsible for their data.
   const privacyReady = !!privacy.controller && !!privacy.contact;
   const [editingPrivacy, setEditingPrivacy] = useState(!privacyReady);
@@ -171,7 +174,7 @@ export function SubmissionsPanel({
                 disabled={pending || !canOpen || !invited || !privacyReady}
                 onClick={() => act(() => setSubmissions(exhibitionId, "open"))}
               >
-                {state === "closed" ? t("Reopen submissions") : t("Open submissions")}
+                {state === "closed" && !skipped ? t("Reopen submissions") : t("Open submissions")}
               </button>
               {state === "pending" && (
                 <button
@@ -189,19 +192,23 @@ export function SubmissionsPanel({
       <p className="muted">
         {state === "open"
           ? t("Open: invited authors can send photographs with their links.")
-          : state === "closed"
+          : skipped
+            ? t("Skipped: the exhibition goes ahead without submissions. To open them after all, invite an author first.")
+            : state === "closed"
             ? t("Closed: authors can no longer send photographs. Their links keep working if you reopen.")
             : t("Invite authors, then open submissions so they can send photographs — or skip this step.")}
       </p>
       {/* A disabled Open button always says why. */}
-      {state !== "open" && (!canOpen || !invited || !privacyReady) && (
-        <p className="hint">
-          {blockedNote ??
-            (!invited
-              ? t("Invite an author first.")
-              : t("Fill in the data protection details first."))}
-        </p>
-      )}
+      {/* (Skipped already says to invite an author.) */}
+      {state !== "open" &&
+        (!canOpen || (!invited && !skipped) || (invited && !privacyReady)) && (
+          <p className="hint">
+            {blockedNote ??
+              (!invited
+                ? t("Invite an author first.")
+                : t("Fill in the data protection details first."))}
+          </p>
+        )}
       <p className="hint">
         {suggestionsEnabled
           ? t(

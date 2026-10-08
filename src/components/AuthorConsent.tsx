@@ -115,7 +115,7 @@ export function ConsentForm({ token, ai }: { token: string; ai: boolean }) {
             onChange={(e) => setAiAgreed(e.target.checked)}
           />
           <span>
-            {t("Optional: I agree that my photographs are analysed by AI to suggest titles and descriptions.")}
+            {t("Optional: I agree that AI analyses my photographs to suggest to the curator a title and a description, which they may use.")}
           </span>
         </label>
       )}
@@ -166,7 +166,7 @@ export function AiConsentToggle({ token, agreed }: { token: string; agreed: bool
     <p className="ai-consent">
       <span>
         {agreed
-          ? t("You agreed that AI suggests titles and descriptions for your photographs.")
+          ? t("You agreed that AI analyses your photographs to suggest to the curator a title and a description. You still give your own.")
           : t("Your photographs are not sent to AI.")}
       </span>
       <button type="button" className="quiet-button" disabled={pending} onClick={change}>

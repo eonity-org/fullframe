@@ -23,7 +23,12 @@ import {
   studioSession,
 } from "./admin";
 import { identify } from "./tydalIdentity";
-import { EXHIBITION_PHASES, type ExhibitionPhase } from "@db/schema";
+import {
+  EXHIBITION_PHASES,
+  VISIBILITIES,
+  type ExhibitionPhase,
+  type Visibility,
+} from "@db/schema";
 import { createVaultConsumer } from "@tydal/client";
 import { parseVaultUrl, serverVaultBase } from "./vaultConnection";
 import {
@@ -923,8 +928,12 @@ export async function revokeAuthor(
  * selection (theme/text are optional — already chosen by now). Any failure
  * keeps the local publication state unchanged and reports any completed TYDAL step.
  */
-export async function openExhibition(exhibitionId: number): Promise<void> {
+export async function openExhibition(
+  exhibitionId: number,
+  visibility: Visibility = "public",
+): Promise<void> {
   await requireManage(exhibitionId);
+  if (!VISIBILITIES.includes(visibility)) return;
 
   const exhibition = await db.query.exhibitions.findFirst({
     where: eq(schema.exhibitions.id, exhibitionId),
@@ -969,8 +978,11 @@ export async function openExhibition(exhibitionId: number): Promise<void> {
   };
 
   // One privileged step: activate the selection and publish the vault, both on
-  // the vault's own write key (no org token, no management API).
-  const result = await executeOpening(exhibition, selected);
+  // the vault's own write key (no org token, no management API). Unlisted:
+  // activate only — the vault stays private.
+  const result = await executeOpening(exhibition, selected, {
+    publish: visibility === "public",
+  });
   const t = await viewerT();
   if (!result.ok) {
     redirect(
@@ -987,6 +999,7 @@ export async function openExhibition(exhibitionId: number): Promise<void> {
     .update(schema.exhibitions)
     .set({
       phase: "open",
+      visibility,
       openedAt: new Date(),
       writebackAt: new Date(),
       scoringRecord,
@@ -998,4 +1011,19 @@ export async function openExhibition(exhibitionId: number): Promise<void> {
 
   revalidatePath(`/admin/${exhibitionId}`, "layout");
   redirect(`/admin/${exhibitionId}/publish?opened=1`);
+}
+
+/**
+ * Whether a public exhibition is listed on the installation's home page —
+ * the installation admin's front page, so theirs alone to decide. Its
+ * organization's page lists it either way.
+ */
+export async function setOnHome(exhibitionId: number, onHome: boolean): Promise<void> {
+  await requireInstallationAdmin();
+  await db
+    .update(schema.exhibitions)
+    .set({ onHome })
+    .where(eq(schema.exhibitions.id, exhibitionId));
+  revalidatePath("/");
+  revalidatePath("/admin");
 }

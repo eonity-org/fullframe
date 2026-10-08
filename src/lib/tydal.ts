@@ -17,16 +17,17 @@ export function vaultBaseFor(exhibition: {
   return base;
 }
 export function vaultKeyFor(
-  exhibition: Pick<Exhibition, "phase" | "readVaultKey">,
+  exhibition: Pick<Exhibition, "phase" | "visibility" | "readVaultKey">,
 ): string | undefined {
-  // Public visitors get only the access TYDAL grants without a key.
-  if (exhibition.phase === "open") return undefined;
+  // Public visitors get only the access TYDAL grants without a key. An
+  // unlisted exhibition's vault stays private: FullFrame reads it with the key.
+  if (exhibition.phase === "open" && exhibition.visibility !== "unlisted") return undefined;
   return decryptSecret(exhibition.readVaultKey) || undefined;
 }
 export function vaultFor(
   exhibition: Pick<
     Exhibition,
-    "phase" | "readVaultKey"
+    "phase" | "visibility" | "readVaultKey"
   > & { vaultHash?: string | null; vaultBaseUrl?: string | null },
 ): VaultConsumer {
   if (!exhibition.vaultHash)

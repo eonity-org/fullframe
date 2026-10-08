@@ -68,6 +68,12 @@ export async function POST(
   }
   await db
     .insert(schema.submissions)
-    .values({ authorId: author.id, resourceHash: result.hash, suggested: suggest });
+    .values({
+      authorId: author.id,
+      resourceHash: result.hash,
+      suggested: suggest,
+      sentName: details.name || null,
+      sentDescription: details.description || null,
+    });
   return Response.json({ hash: result.hash });
 }

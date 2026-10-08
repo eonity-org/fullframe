@@ -15,6 +15,20 @@
       "when": 1791402174912,
       "tag": "0001_submission_settings",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1791457840110,
+      "tag": "0002_author_sent",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1791458474614,
+      "tag": "0003_visibility",
+      "breakpoints": true
     }
   ]
 }

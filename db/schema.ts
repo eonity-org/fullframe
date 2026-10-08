@@ -45,6 +45,16 @@ export const EXHIBITION_PHASES = [
 ] as const;
 export type ExhibitionPhase = (typeof EXHIBITION_PHASES)[number];
 
+/**
+ * How an open exhibition is reached. `public`: at its address, listed on its
+ * organization's page and (unless the installation admin hides it) the home
+ * page; the vault is published. `unlisted`: only through its private link
+ * `/x/{vaultHash}`, listed nowhere; the vault stays private and FullFrame
+ * serves it with the read key, as for the jury. Chosen when opening.
+ */
+export const VISIBILITIES = ["public", "unlisted"] as const;
+export type Visibility = (typeof VISIBILITIES)[number];
+
 export const SUBMISSION_STATES = ["pending", "open", "closed"] as const;
 export type SubmissionState = (typeof SUBMISSION_STATES)[number];
 
@@ -93,6 +103,9 @@ export const exhibitions = sqliteTable(
     phase: text("phase", { enum: EXHIBITION_PHASES })
       .notNull()
       .default("setup"),
+    visibility: text("visibility", { enum: VISIBILITIES }).notNull().default("public"),
+    /** Listed on the installation's home page when public — the installation admin's call. */
+    onHome: integer("on_home", { mode: "boolean" }).notNull().default(true),
     /**
      * The submission period for invited authors (`authors`): `pending` until the
      * curator opens it or skips it, `open` while authors may send photographs,
@@ -264,5 +277,12 @@ export const submissions = sqliteTable("submissions", {
   resourceHash: text("resource_hash").notNull().unique(),
   /** Sent to TYDAL with `suggest` — the author had agreed to AI processing. */
   suggested: integer("suggested", { mode: "boolean" }).notNull().default(false),
+  /**
+   * The title and description as the author last sent them. TYDAL holds only
+   * the current ones, so once the curator edits them these are the author's
+   * own words, still offered in the edit form.
+   */
+  sentName: text("sent_name"),
+  sentDescription: text("sent_description"),
   ...timestamps,
 });

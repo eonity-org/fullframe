@@ -89,6 +89,27 @@ export async function keepAuthor(
   return author ? { ...details, author: author.name } : details;
 }
 
+/** The title and description an author sent (or last corrected) for one photograph. */
+export async function recordSent(
+  hash: string,
+  details: { name?: string; description?: string },
+): Promise<void> {
+  await db
+    .update(schema.submissions)
+    .set({ sentName: details.name || null, sentDescription: details.description || null })
+    .where(eq(schema.submissions.resourceHash, hash));
+}
+
+/** What the author sent for this photograph, if an author sent it. */
+export async function sentByAuthor(
+  hash: string,
+): Promise<{ name: string | null; description: string | null } | null> {
+  const row = await db.query.submissions.findFirst({
+    where: eq(schema.submissions.resourceHash, hash),
+  });
+  return row ? { name: row.sentName, description: row.sentDescription } : null;
+}
+
 export async function forgetSubmission(hash: string): Promise<void> {
   await db
     .delete(schema.submissions)

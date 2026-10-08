@@ -1260,7 +1260,7 @@ details[open] > summary {
 }
 .overview-stats {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   border: 1px solid var(--line);
   border-radius: 8px;
   background: #fff;
@@ -2854,6 +2854,7 @@ details[open] > summary {
 }
 .detail-field {
   display: grid;
+  align-content: start;
   gap: 6px;
   min-width: 0;
 }
@@ -2873,6 +2874,14 @@ details[open] > summary {
 .field-suggestion-label {
   color: var(--accent-dark);
   font-weight: 600;
+}
+/* The author's own words: neutral, not AITY's tint. */
+.field-suggestion.author-sent {
+  background: var(--room);
+  border: 1px solid var(--line);
+}
+.field-suggestion.author-sent .field-suggestion-label {
+  color: inherit;
 }
 .field-suggestion-text {
   flex: 1 1 12em;
@@ -2907,27 +2916,44 @@ details[open] > summary {
   margin: 0;
 }
 /* The author page: the data protection notice and the consent answers. */
+.privacy-notice {
+  margin-top: 16px;
+}
 .privacy-notice p {
   max-width: 68ch;
-  line-height: 1.55;
+  line-height: 1.6;
+}
+.privacy-notice p + p {
+  margin-top: 16px;
 }
 .privacy-notes {
   white-space: pre-line;
 }
+/* The answers, set apart from the notice they answer. */
 .consent-form {
   display: grid;
-  gap: 14px;
-  margin-top: 18px;
+  gap: 16px;
+  margin-top: 28px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
 }
 .consent-form label.check {
   display: flex;
   align-items: flex-start;
-  gap: 10px;
+  gap: 12px;
   font-weight: 400;
+  line-height: 1.5;
   max-width: 68ch;
 }
+/* A fixed square: in a flex row a long label would otherwise shrink it. */
 .consent-form label.check input {
-  margin-top: 3px;
+  flex: none;
+  width: 16px;
+  height: 16px;
+  margin: 3px 0 0;
+}
+.consent-form .button-row {
+  margin-top: 8px;
 }
 .ai-consent {
   display: flex;
@@ -2980,6 +3006,44 @@ details[open] > summary {
    describe what they see without switching back and forth. */
 .confirmation-dialog.upload-viewer {
   width: min(1100px, calc(100vw - 32px));
+}
+/* Editing a photograph: the photograph on the left (40%), the fields and
+   AITY's proposals on the right. */
+.confirmation-dialog.edit-dialog {
+  width: min(max(80vw, 540px), 1400px, calc(100vw - 32px));
+}
+.edit-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+  gap: 28px;
+  align-items: start;
+}
+.edit-photo {
+  position: sticky;
+  top: 0;
+  display: grid;
+  gap: 8px;
+}
+.edit-photo img {
+  width: 100%;
+  max-height: calc(100dvh - 200px);
+  object-fit: contain;
+  background: var(--room);
+  border-radius: 6px;
+}
+.edit-photo p {
+  font-size: 13px;
+}
+@media (max-width: 760px) {
+  .edit-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .edit-photo {
+    position: static;
+  }
+  .edit-photo img {
+    max-height: 40dvh;
+  }
 }
 .upload-viewer-body {
   display: grid;
@@ -3274,4 +3338,71 @@ details[open] > summary {
 }
 .selection-heading h2 {
   font-size: 28px;
+}
+
+/* Studio list: a card, and below it the installation admin's home page switch. */
+.studio-exhibition-item {
+  display: grid;
+  grid-template-rows: 1fr auto;
+  gap: 8px;
+  min-width: 0;
+}
+.home-toggle {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 4px;
+  font-size: 13px;
+}
+.home-toggle .quiet-button {
+  font-size: 13px;
+}
+/* Publishing: public, or a private link. */
+.visibility-choice {
+  display: grid;
+  gap: 18px;
+  margin: 22px 0 24px;
+}
+.visibility-choice legend {
+  margin-bottom: 14px;
+  font-weight: 600;
+  font-size: 14px;
+}
+.visibility-choice label.check {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-weight: 400;
+}
+.visibility-choice label.check input {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  margin: 3px 0 0;
+}
+.visibility-choice label.check span {
+  display: grid;
+  gap: 4px;
+}
+.visibility-choice label.check small {
+  line-height: 1.55;
+}
+/* A live unlisted exhibition's link: its own line in the stage bar. */
+.private-link {
+  flex-basis: 100%;
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  padding-top: 10px;
+  border-top: 1px solid #b9d4e1;
+}
+.private-link code {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 13px;
+}
+.private-link small {
+  flex-basis: 100%;
 }

@@ -83,7 +83,7 @@ export default async function Page({
           <p className="intro">{t("Gather the photographs and, if you want one, a jury.")}</p>
         </div>
         <Link className="button" href={exhibitionPath(e, "salon")} target="_blank">
-          {t("Preview exhibition ↗")}
+          {e.phase === "open" ? t("Visit exhibition ↗") : t("Preview exhibition ↗")}
         </Link>
       </div>
       <AdminNav id={id} />
@@ -92,7 +92,12 @@ export default async function Page({
         phase={e.phase}
         page="setup"
         selected={e.selectedHashes?.length ?? null}
-        base={exhibitionPath(e)}
+        visibility={e.visibility}
+        privateLink={
+          e.phase === "open" && e.visibility === "unlisted" && e.vaultHash
+            ? `/x/${e.vaultHash}`
+            : null
+        }
       />
       {error && (
         <p className="error" role="alert">
@@ -184,6 +189,9 @@ export default async function Page({
                 preview: previews.get(photo.hash) ?? null,
                 large: larger.get(photo.hash) ?? null,
                 authorLocked: sentBy.has(photo.hash),
+                ...(e.suggestionsEnabled && sentBy.has(photo.hash)
+                  ? { aiConsent: !!sentBy.get(photo.hash)?.aiConsentAt }
+                  : {}),
               }))}
             />
           </>

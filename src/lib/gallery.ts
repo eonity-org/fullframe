@@ -51,3 +51,21 @@ export const loadGallery = cache(async (exhibition: Exhibition) => {
   }
   return { works, meta };
 });
+
+/**
+ * What visitors see — and so what the preview shows. Once open, TYDAL's vault
+ * holds only the selection (the opening's `activate`); before that it still
+ * projects every photograph, so a saved selection is applied here, while
+ * preparing or selecting. Not while judging: the jury sees them all. The
+ * studio itself keeps using `loadGallery`, which sees everything.
+ */
+export function exhibitedWorks(
+  exhibition: Pick<Exhibition, "phase" | "selectedHashes">,
+  works: GalleryWork[],
+): GalleryWork[] {
+  const selected = exhibition.selectedHashes;
+  if (exhibition.phase === "open" || exhibition.phase === "judging" || !selected?.length)
+    return works;
+  const keep = new Set(selected);
+  return works.filter((work) => keep.has(work.id));
+}

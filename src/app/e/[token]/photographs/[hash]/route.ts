@@ -4,7 +4,7 @@
  * the invitation.
  */
 import { authorGate } from "@/lib/authorGate";
-import { authorEntries, forgetSubmission } from "@/lib/authors";
+import { authorEntries, forgetSubmission, recordSent } from "@/lib/authors";
 import { updatePhotograph, withdrawPhotograph } from "@/lib/uploads";
 import { detailsFrom, missingFields } from "@/lib/photoFields";
 import { log } from "@/lib/log";
@@ -46,6 +46,7 @@ export async function PATCH(request: Request, context: Context) {
     log.warn("author.update.refused", { exhibitionId: exhibition.id, status: result.status });
     return Response.json({ error: t(result.error) }, { status: result.status });
   }
+  await recordSent(hash, details);
   return Response.json({ ok: true });
 }
 

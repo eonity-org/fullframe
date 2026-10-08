@@ -22,7 +22,7 @@ export default async function Page({
     exhibitions.find((e) => e.organizationName)?.organizationName ?? org;
   return (
     <ExhibitionDirectory
-      exhibitions={exhibitions.filter((e) => e.phase === "open")}
+      exhibitions={exhibitions.filter((e) => e.phase === "open" && e.visibility === "public")}
       organization={name}
     />
   );

@@ -55,9 +55,15 @@ export async function planOpening(
   }
   return plan;
 }
+/**
+ * Activate the selection and, for a `public` opening, publish the vault. An
+ * `unlisted` opening stops at `activate`: the vault keeps only the selection
+ * but stays private (reverseOpening's `close` undoes either).
+ */
 export async function executeOpening(
   exhibition: Exhibition,
   selectedHashes: string[],
+  { publish = true }: { publish?: boolean } = {},
 ): Promise<{ ok: boolean; errors: string[]; activated?: number }> {
   const plan = await planOpening(exhibition, selectedHashes);
   if (plan.errors.length) return { ok: false, errors: plan.errors };
@@ -78,7 +84,7 @@ export async function executeOpening(
     const write = writeConsumerFor(exhibition);
     await write.write("activate", { resources: hashes });
     activated = true;
-    await write.write("open");
+    if (publish) await write.write("open");
     return { ok: true, errors: [], activated: hashes.length };
   } catch {
     return {

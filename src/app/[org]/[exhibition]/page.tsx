@@ -5,7 +5,7 @@ import {
 import { notFound, permanentRedirect } from "next/navigation";
 import { canView, getExhibition, legacyAddress } from "@/lib/exhibitions";
 import { exhibitionPath, organizationLink } from "@/lib/paths";
-import { loadGallery } from "@/lib/gallery";
+import { exhibitedWorks, loadGallery } from "@/lib/gallery";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { Photograph } from "@/components/Photograph";
@@ -20,6 +20,8 @@ export async function generateMetadata({
   const { org, exhibition } = await params;
   const e = await getExhibition(org, exhibition);
   const t = exhibitionT(e ?? {});
+  // An unlisted exhibition says nothing at its guessable address.
+  if (e?.phase === "open" && !(await canView(e))) return { title: "FullFrame" };
   return {
     title: e?.title || "FullFrame",
     description: e?.subtitle || t("A photography exhibition"),
@@ -38,10 +40,14 @@ export default async function Page({
     if (moved) permanentRedirect(moved);
     notFound();
   }
-  if (!(await canView(e))) return <Teaser title={e.title} organization={organizationLink(e)} />;
+  if (!(await canView(e))) {
+    // Open but not viewable: unlisted, reached without its private link.
+    if (e.phase === "open") notFound();
+    return <Teaser title={e.title} organization={organizationLink(e)} />;
+  }
   let works: Awaited<ReturnType<typeof loadGallery>>["works"] = [];
   try {
-    works = (await loadGallery(e)).works;
+    works = exhibitedWorks(e, (await loadGallery(e)).works);
   } catch {
     /* Entry remains navigable while the vault recovers. */
   }
