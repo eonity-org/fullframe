@@ -23,7 +23,12 @@ import {
   studioSession,
 } from "./admin";
 import { identify } from "./tydalIdentity";
-import { EXHIBITION_PHASES, type ExhibitionPhase } from "@db/schema";
+import {
+  EXHIBITION_PHASES,
+  VISIBILITIES,
+  type ExhibitionPhase,
+  type Visibility,
+} from "@db/schema";
 import { createVaultConsumer } from "@tydal/client";
 import { parseVaultUrl, serverVaultBase } from "./vaultConnection";
 import {
@@ -32,6 +37,7 @@ import {
   type Appearance,
 } from "./appearance";
 import { encryptSecret, decryptSecret } from "./crypto";
+import { privacyReady } from "./consent";
 import { english, isLocale } from "@/i18n/core";
 import { exhibitionT, viewerLocale, viewerT } from "@/i18n/server";
 
@@ -746,6 +752,12 @@ export async function setSubmissions(
     }))
   )
     return { error: t("Invite an author first: nobody could send photographs yet.") };
+  if (state === "open" && !privacyReady(exhibition))
+    return {
+      error: t(
+        "Say who is responsible for the authors' data, and how to reach them, before opening submissions.",
+      ),
+    };
   await db
     .update(schema.exhibitions)
     .set({ submissions: state })
@@ -766,6 +778,78 @@ export async function setSubmissionLimit(
   await db
     .update(schema.exhibitions)
     .set({ submissionLimit: limit })
+    .where(eq(schema.exhibitions.id, exhibitionId));
+  revalidatePath(`/admin/${exhibitionId}`);
+  return { ok: true };
+}
+
+/**
+ * Whether AITY proposes titles and descriptions. Fixed while submissions are
+ * open: the authors' form, and what they agreed to, depend on it.
+ */
+export async function setSuggestionsEnabled(
+  exhibitionId: number,
+  enabled: boolean,
+): Promise<{ ok: true } | { error: string }> {
+  await requireManage(exhibitionId);
+  const t = await viewerT();
+  const exhibition = await db.query.exhibitions.findFirst({
+    where: eq(schema.exhibitions.id, exhibitionId),
+  });
+  if (!exhibition) return { error: t("This exhibition no longer exists.") };
+  if (exhibition.submissions === "open")
+    return { error: t("Close submissions to change AI suggestions.") };
+  await db
+    .update(schema.exhibitions)
+    .set({ suggestionsEnabled: enabled })
+    .where(eq(schema.exhibitions.id, exhibitionId));
+  revalidatePath(`/admin/${exhibitionId}`);
+  return { ok: true };
+}
+
+export type PrivacyResult = { ok: true } | { error: string } | null;
+
+/**
+ * The data protection details every invited author reads before sending:
+ * who is responsible (required), how to reach them (required), and anything
+ * else the organizer must tell them. Fixed while submissions are open.
+ */
+export async function savePrivacy(
+  exhibitionId: number,
+  _previous: PrivacyResult,
+  formData: FormData,
+): Promise<PrivacyResult> {
+  await requireManage(exhibitionId);
+  const t = await viewerT();
+  const exhibition = await db.query.exhibitions.findFirst({
+    where: eq(schema.exhibitions.id, exhibitionId),
+  });
+  if (!exhibition) return { error: t("This exhibition no longer exists.") };
+  if (exhibition.submissions === "open")
+    return { error: t("Close submissions to change the data protection notice.") };
+  const read = (key: string, max: number) =>
+    String(formData.get(key) ?? "").trim().slice(0, max) || null;
+  await db
+    .update(schema.exhibitions)
+    .set({
+      dataController: read("dataController", 200),
+      dataContact: read("dataContact", 200),
+      privacyNotes: read("privacyNotes", 4000),
+    })
+    .where(eq(schema.exhibitions.id, exhibitionId));
+  revalidatePath(`/admin/${exhibitionId}`);
+  return { ok: true };
+}
+
+/** Whether invited authors must describe each photograph they send. */
+export async function setDescriptionRequired(
+  exhibitionId: number,
+  required: boolean,
+): Promise<{ ok: true } | { error: string }> {
+  await requireManage(exhibitionId);
+  await db
+    .update(schema.exhibitions)
+    .set({ descriptionRequired: required })
     .where(eq(schema.exhibitions.id, exhibitionId));
   revalidatePath(`/admin/${exhibitionId}`);
   return { ok: true };
@@ -844,8 +928,12 @@ export async function revokeAuthor(
  * selection (theme/text are optional — already chosen by now). Any failure
  * keeps the local publication state unchanged and reports any completed TYDAL step.
  */
-export async function openExhibition(exhibitionId: number): Promise<void> {
+export async function openExhibition(
+  exhibitionId: number,
+  visibility: Visibility = "public",
+): Promise<void> {
   await requireManage(exhibitionId);
+  if (!VISIBILITIES.includes(visibility)) return;
 
   const exhibition = await db.query.exhibitions.findFirst({
     where: eq(schema.exhibitions.id, exhibitionId),
@@ -890,8 +978,11 @@ export async function openExhibition(exhibitionId: number): Promise<void> {
   };
 
   // One privileged step: activate the selection and publish the vault, both on
-  // the vault's own write key (no org token, no management API).
-  const result = await executeOpening(exhibition, selected);
+  // the vault's own write key (no org token, no management API). Unlisted:
+  // activate only — the vault stays private.
+  const result = await executeOpening(exhibition, selected, {
+    publish: visibility === "public",
+  });
   const t = await viewerT();
   if (!result.ok) {
     redirect(
@@ -908,6 +999,7 @@ export async function openExhibition(exhibitionId: number): Promise<void> {
     .update(schema.exhibitions)
     .set({
       phase: "open",
+      visibility,
       openedAt: new Date(),
       writebackAt: new Date(),
       scoringRecord,
@@ -919,4 +1011,19 @@ export async function openExhibition(exhibitionId: number): Promise<void> {
 
   revalidatePath(`/admin/${exhibitionId}`, "layout");
   redirect(`/admin/${exhibitionId}/publish?opened=1`);
+}
+
+/**
+ * Whether a public exhibition is listed on the installation's home page —
+ * the installation admin's front page, so theirs alone to decide. Its
+ * organization's page lists it either way.
+ */
+export async function setOnHome(exhibitionId: number, onHome: boolean): Promise<void> {
+  await requireInstallationAdmin();
+  await db
+    .update(schema.exhibitions)
+    .set({ onHome })
+    .where(eq(schema.exhibitions.id, exhibitionId));
+  revalidatePath("/");
+  revalidatePath("/admin");
 }

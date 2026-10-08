@@ -58,7 +58,10 @@ export async function POST(
       { status: 400 },
     );
 
-  const result = await ingestPhotograph(exhibition, image, details);
+  // The curator's own photograph: their exhibition setting decides.
+  const result = await ingestPhotograph(exhibition, image, details, {
+    suggest: exhibition.suggestionsEnabled,
+  });
   if (!result.ok) {
     log.warn("upload.refused", { exhibitionId: id, status: result.status });
     return Response.json({ error: t(result.error) }, { status: result.status });

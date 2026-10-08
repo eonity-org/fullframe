@@ -1,5 +1,5 @@
 import "server-only";
-import { TydalApiError } from "@tydal/client";
+import { TydalApiError, type VaultSuggestion } from "@tydal/client";
 import { vaultFor, writeConsumerFor } from "./tydal";
 import { decryptSecret } from "./crypto";
 import type { Exhibition } from "./exhibitions";
@@ -78,17 +78,44 @@ export async function photoDetails(
   return read.filter((d) => d !== null);
 }
 
+/**
+ * What TYDAL's AITY proposes as a photograph's title and description. TYDAL
+ * runs it on a photograph only when `ingest` asked (`suggest`); it takes a
+ * while, so it's `pending` until it's done, and `off` when it never ran.
+ * Nothing is applied: the curator takes a proposal into the edit form and
+ * saves it with `update`, like any correction. Null when TYDAL can't say.
+ */
+export async function photoSuggestion(
+  exhibition: Exhibition,
+  hash: string,
+): Promise<VaultSuggestion | null> {
+  try {
+    const { suggestions } = await writeConsumerFor(exhibition).suggestions([hash]);
+    return suggestions[hash] ?? null;
+  } catch {
+    return null;
+  }
+}
+
 type Refusal = { ok: false; status: number; error: Message };
 
+/**
+ * Add a photograph. With `suggest`, TYDAL also runs AITY on it — only when the
+ * exhibition has suggestions on and, for an invited author, they agreed to AI
+ * processing (src/lib/consent.ts); without it the photograph never reaches an
+ * AI service.
+ */
 export async function ingestPhotograph(
   exhibition: Exhibition,
   image: File,
   details: PhotoDetails,
+  { suggest = false }: { suggest?: boolean } = {},
 ): Promise<{ ok: true; hash: string } | Refusal> {
   try {
     const response = await writeConsumerFor(exhibition).write("ingest", {
       image,
       metadata: details,
+      ...(suggest ? { suggest: true } : {}),
     });
     const hash = (response.result as { hash?: unknown } | undefined)?.hash;
     if (typeof hash !== "string")

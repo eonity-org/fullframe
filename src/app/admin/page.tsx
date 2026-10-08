@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { db } from "@db/index";
 import { accessFor, managedOrganizations, studioSession } from "@/lib/admin";
-import { logout } from "@/lib/actions";
+import { logout, setOnHome } from "@/lib/actions";
 import { ConnectionForm } from "@/components/admin/ConnectionForm";
 import { viewerT } from "@/i18n/server";
 import { studioPath } from "@/lib/paths";
@@ -59,9 +59,9 @@ export default async function Page({
       )}
       <div className="studio-exhibitions">
         {all.map((e) => (
+          <div className="studio-exhibition-item" key={e.id}>
           <Link
             className="studio-exhibition"
-            key={e.id}
             href={studioPath(e)}
           >
             <div className="section-heading">
@@ -69,7 +69,9 @@ export default async function Page({
                 {e.phase === "setup"
                   ? t("Draft")
                   : e.phase === "open"
-                    ? t("Published")
+                    ? e.visibility === "unlisted"
+                      ? t("Private link")
+                      : t("Published")
                     : e.phase === "judging"
                       ? t("Jury open")
                       : t("Ready to select")}
@@ -85,6 +87,21 @@ export default async function Page({
             <p>{e.subtitle || t("Your next exhibition, taking shape.")}</p>
             <span className="muted">{t("Manage exhibition →")}</span>
           </Link>
+          {/* The home page is the installation admin's: only they choose. */}
+          {session.kind === "admin" && e.phase === "open" && e.visibility === "public" && (
+            <form
+              className="home-toggle"
+              action={setOnHome.bind(null, e.id, !e.onHome)}
+            >
+              <span className="muted">
+                {e.onHome ? t("On the home page") : t("Not on the home page")}
+              </span>
+              <button className="quiet-button">
+                {e.onHome ? t("Hide from the home page") : t("Show on the home page")}
+              </button>
+            </form>
+          )}
+          </div>
         ))}
       </div>
       {all.length === 0 && (

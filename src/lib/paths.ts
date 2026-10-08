@@ -15,6 +15,7 @@ export const RESERVED_ORGANIZATION_SLUGS = [
   "api",
   "e",
   "j",
+  "x",
   "_next",
   "robots.txt",
   "sitemap.xml",

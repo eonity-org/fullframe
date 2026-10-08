@@ -81,12 +81,19 @@ export function isPreviewMode(): boolean {
  * The phase gate. Pre-opening, an exhibition is visible only to: a studio
  * session with access to it (the installation admin, or a member of its TYDAL
  * organization — curator preview), this exhibition's juror while the phase is
- * `judging` or `selection`, or the PREVIEW_MODE dev switch.
+ * `judging` or `selection`, or the PREVIEW_MODE dev switch. Open, it is
+ * visible to everyone — or, `unlisted`, to whoever came through its private
+ * link (src/lib/linkPass.ts), and the studio.
  */
 export async function canView(
-  exhibition: Pick<Exhibition, "id" | "phase" | "organizationId">,
+  exhibition: Pick<Exhibition, "id" | "phase" | "organizationId" | "visibility" | "vaultHash">,
 ): Promise<boolean> {
-  if (exhibition.phase === "open" || isPreviewMode()) return true;
+  if (exhibition.phase === "open" && exhibition.visibility !== "unlisted") return true;
+  if (isPreviewMode()) return true;
+  if (exhibition.phase === "open") {
+    const { hasLinkPass } = await import("./linkPass");
+    if (await hasLinkPass(exhibition)) return true;
+  }
   const { studioAccess } = await import("./admin");
   if (await studioAccess(exhibition)) return true;
   const { jurorFor } = await import("./jury");

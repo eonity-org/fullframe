@@ -1,15 +1,17 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { ConfirmationDialog } from "./ConfirmationDialog";
 import {
   PHOTO_FIELDS,
   isRequired,
   missingFields,
+  type FieldRules,
   type PhotoDetails,
   type PhotoFieldKey,
 } from "@/lib/photoFields";
 import { useT } from "@/i18n/client";
+import { useSuggestion } from "./useSuggestion";
 
 type Queued = {
   key: string;
@@ -28,7 +30,17 @@ export type AddedPhoto = PhotoDetails & {
   large?: string | null;
   /** Sent by an invited author: the author's name can't be changed. */
   authorLocked?: boolean;
+  /**
+   * An author's photograph, with AI suggestions on: whether the author agrees
+   * to AI processing now (AITY's proposals are used only if so). Absent
+   * otherwise.
+   */
+  aiConsent?: boolean;
 };
+
+/** The fields AITY proposes, and the text offered beside each in the edit form. */
+type Suggestible = "name" | "description";
+type Alternative = { text: string; kind: "suggested" | "previous" };
 
 /** Bytes as megabytes with one decimal, e.g. 12.4. */
 const mb = (bytes: number) => (bytes / 1024 / 1024).toFixed(1);
@@ -68,41 +80,50 @@ function DetailFields({
   values,
   disabled,
   lockAuthor,
+  rules,
+  below,
   onChange,
 }: {
   values: PhotoDetails;
   disabled?: boolean;
   /** The author comes from an invitation and is shown, not edited. */
   lockAuthor?: boolean;
+  /** What the exhibition asks beyond title and author. */
+  rules: FieldRules;
+  /** Shown under a field's input — AITY's proposal for it, in the edit form. */
+  below?: Partial<Record<PhotoFieldKey, ReactNode>>;
   onChange: (key: PhotoFieldKey, value: string) => void;
 }) {
   const t = useT();
   return (
     <>
       {PHOTO_FIELDS.map((field) => (
-        <label key={field.key} className={"multiline" in field ? "wide" : undefined}>
-          <span>
-            {t(field.label)}
-            {!isRequired(field) && <small className="muted"> · {t("Optional")}</small>}
-          </span>
-          {"multiline" in field ? (
-            <textarea
-              rows={3}
-              required={isRequired(field)}
-              value={values[field.key] ?? ""}
-              disabled={disabled}
-              onChange={(e) => onChange(field.key, e.target.value)}
-            />
-          ) : (
-            <input
-              value={values[field.key] ?? ""}
-              required={isRequired(field)}
-              disabled={disabled || (lockAuthor && field.key === "author")}
-              placeholder={"placeholder" in field ? t(field.placeholder) : undefined}
-              onChange={(e) => onChange(field.key, e.target.value)}
-            />
-          )}
-        </label>
+        <div key={field.key} className={"detail-field" + ("multiline" in field ? " wide" : "")}>
+          <label>
+            <span>
+              {t(field.label)}
+              {!isRequired(field, rules) && <small className="muted"> · {t("Optional")}</small>}
+            </span>
+            {"multiline" in field ? (
+              <textarea
+                rows={3}
+                required={isRequired(field, rules)}
+                value={values[field.key] ?? ""}
+                disabled={disabled}
+                onChange={(e) => onChange(field.key, e.target.value)}
+              />
+            ) : (
+              <input
+                value={values[field.key] ?? ""}
+                required={isRequired(field, rules)}
+                disabled={disabled || (lockAuthor && field.key === "author")}
+                placeholder={"placeholder" in field ? t(field.placeholder) : undefined}
+                onChange={(e) => onChange(field.key, e.target.value)}
+              />
+            )}
+          </label>
+          {below?.[field.key]}
+        </div>
       ))}
     </>
   );
@@ -118,6 +139,8 @@ export function PhotoUploader({
   author,
   remaining = null,
   showPreviews = true,
+  descriptionRequired = false,
+  suggestions = false,
 }: {
   /** Where photographs are sent; one is corrected or removed at `{endpoint}/{hash}`. */
   endpoint: string;
@@ -135,9 +158,14 @@ export function PhotoUploader({
   remaining?: number | null;
   /** The sent photographs' previews can be shown (the studio, not an author). */
   showPreviews?: boolean;
+  /** The exhibition asks its invited authors to describe each photograph. */
+  descriptionRequired?: boolean;
+  /** Offer AITY's proposed title and description when editing (the studio). */
+  suggestions?: boolean;
 }) {
   const t = useT();
   const router = useRouter();
+  const rules: FieldRules = { descriptionRequired };
   const [queue, setQueue] = useState<Queued[]>([]);
   const [busy, setBusy] = useState(false);
   /** Files turned away for size when chosen — never uploaded, so no time is wasted. */
@@ -203,7 +231,7 @@ export function PhotoUploader({
     window.addEventListener("beforeunload", warn);
     return () => window.removeEventListener("beforeunload", warn);
   }, [pending.length]);
-  const incomplete = pending.some((q) => missingFields(q.details).length > 0);
+  const incomplete = pending.some((q) => missingFields(q.details, rules).length > 0);
 
   const upload = async () => {
     setBusy(true);
@@ -261,6 +289,107 @@ export function PhotoUploader({
     const next = added[inspectIndex + by];
     if (next) setInspecting(next.hash);
   };
+
+  // AITY's proposals for the photograph being edited, offered beside its
+  // title and description: "Use" swaps one in, and the text it replaced stays
+  // offered, so the swap can be undone until the details are saved. Asked for
+  // an author's photograph even with AITY off: the same answer carries what
+  // the author sent, which stays offered for good.
+  const suggestion = useSuggestion(
+    (suggestions || editing?.authorLocked) && editing
+      ? `${endpoint}/${encodeURIComponent(editing.hash)}`
+      : null,
+  );
+  const [alternatives, setAlternatives] = useState<
+    Partial<Record<Suggestible, Alternative>>
+  >({});
+  useEffect(() => {
+    if (suggestion.status !== "done") return setAlternatives({});
+    const offer = (key: Suggestible): Alternative | undefined => {
+      const text = suggestion[key];
+      return text && text !== draft[key]?.trim() ? { text, kind: "suggested" } : undefined;
+    };
+    setAlternatives({ name: offer("name"), description: offer("description") });
+    // Only when the proposals arrive — not on every keystroke in the form.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [suggestion]);
+  const swap = (key: Suggestible) => {
+    const offered = alternatives[key];
+    if (!offered) return;
+    const current = draft[key]?.trim() ?? "";
+    setDraft((d) => ({ ...d, [key]: offered.text }));
+    setAlternatives((a) => ({
+      ...a,
+      [key]: current
+        ? { text: current, kind: offered.kind === "suggested" ? "previous" : "suggested" }
+        : undefined,
+    }));
+  };
+  const offered = (key: Suggestible) => {
+    // The author's own words, whenever the field no longer holds them.
+    const sent = suggestion.sent?.[key]?.trim();
+    const showSent = !!sent && sent !== (draft[key]?.trim() ?? "");
+    const alternative = alternatives[key];
+    // "Before" would only repeat the author's line.
+    const showAlternative =
+      !!alternative && !(showSent && alternative.kind === "previous" && alternative.text === sent);
+    if (!showSent && !showAlternative) return null;
+    return (
+      <>
+        {showSent && (
+          <p className="field-suggestion author-sent">
+            <span className="field-suggestion-label">{t("The author sent")}</span>
+            <span className="field-suggestion-text">{sent}</span>
+            <button
+              type="button"
+              className="quiet-button"
+              disabled={dialogPending}
+              onClick={() => takeSent(key, sent)}
+            >
+              {t("Use")}
+            </button>
+          </p>
+        )}
+        {showAlternative && alternative && offeredAlternative(key, alternative)}
+      </>
+    );
+  };
+  // Back to the author's words; what the field held (or else AITY's proposal)
+  // stays offered, as with any swap.
+  const takeSent = (key: Suggestible, sent: string) => {
+    const current = draft[key]?.trim() ?? "";
+    const proposed = suggestion.status === "done" ? suggestion[key]?.trim() : undefined;
+    setDraft((d) => ({ ...d, [key]: sent }));
+    setAlternatives((a) => ({
+      ...a,
+      [key]:
+        current && current !== sent
+          ? { text: current, kind: current === proposed ? "suggested" : "previous" }
+          : proposed && proposed !== sent
+            ? { text: proposed, kind: "suggested" }
+            : undefined,
+    }));
+  };
+  const offeredAlternative = (key: Suggestible, alternative: Alternative) => {
+    return (
+      <p className="field-suggestion">
+        <span className="field-suggestion-label">
+          {alternative.kind === "suggested" ? t("AITY suggests") : t("Before")}
+        </span>
+        <span className="field-suggestion-text">{alternative.text}</span>
+        <button
+          type="button"
+          className="quiet-button"
+          disabled={dialogPending}
+          onClick={() => swap(key)}
+        >
+          {alternative.kind === "suggested" ? t("Use") : t("Restore")}
+        </button>
+      </p>
+    );
+  };
+
+  const editingImage = editing ? editing.large || editing.preview : null;
 
   const closeDialog = () => {
     setEditing(null);
@@ -410,6 +539,7 @@ export function PhotoUploader({
                     <div className="upload-fields">
                       <div className="form-grid">
                         <DetailFields
+                          rules={rules}
                           values={item.details}
                           disabled={locked}
                           lockAuthor={!!author}
@@ -445,7 +575,9 @@ export function PhotoUploader({
               </button>
               {incomplete && (
                 <span className="hint">
-                  {t("Give each photograph at least a title and an author to add it.")}
+                  {descriptionRequired
+                    ? t("Give each photograph a title and a description to add it.")
+                    : t("Give each photograph at least a title and an author to add it.")}
                 </span>
               )}
             </div>
@@ -483,6 +615,12 @@ export function PhotoUploader({
                   {photo.name}
                   {photo.author && !author && (
                     <small className="muted"> · {photo.author}</small>
+                  )}
+                  {suggestions && photo.aiConsent !== undefined && (
+                    <small className="muted">
+                      {" · "}
+                      {photo.aiConsent ? t("AI: agreed") : t("AI: not agreed")}
+                    </small>
                   )}
                   {showPreviews && !photo.preview && (
                     <small className="upload-state ok">
@@ -525,6 +663,7 @@ export function PhotoUploader({
             <img src={viewed.preview} alt="" />
             <div className="form-grid">
               <DetailFields
+                rules={rules}
                 values={viewed.details}
                 lockAuthor={!!author}
                 disabled={busy || viewed.state === "done" || viewed.state === "uploading"}
@@ -631,8 +770,23 @@ export function PhotoUploader({
         open={!!editing}
         pending={dialogPending}
         onCancel={closeDialog}
+        // The photograph beside the fields, where there is one to show (the
+        // author's own page has no previews).
+        className={editingImage ? "edit-dialog" : undefined}
         title={t("Edit “{title}”", { title: editing?.name ?? "" })}
       >
+        <div className={editingImage ? "edit-layout" : undefined}>
+        {editingImage && (
+          <div className="edit-photo">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={editingImage} alt="" />
+            {editing?.aiConsent !== undefined && suggestions && (
+              <p className="muted">
+                {editing.aiConsent ? t("AI: agreed") : t("AI: not agreed")}
+              </p>
+            )}
+          </div>
+        )}
         <form
           className="stack-form"
           onSubmit={(e) => {
@@ -640,8 +794,20 @@ export function PhotoUploader({
             if (editing) change(editing, "PATCH");
           }}
         >
+          {suggestions && suggestion.status === "pending" && (
+            <p className="hint suggestion-status" role="status">
+              {t("AITY is looking at the photograph to suggest a title and a description…")}
+            </p>
+          )}
+          {suggestions && suggestion.status === "slow" && (
+            <p className="hint suggestion-status" role="status">
+              {t("AITY is taking longer than usual. Open the photograph again later to see its suggestions.")}
+            </p>
+          )}
           <div className="form-grid">
             <DetailFields
+              rules={rules}
+              below={{ name: offered("name"), description: offered("description") }}
               values={draft}
               lockAuthor={!!author || !!editing?.authorLocked}
               disabled={dialogPending}
@@ -664,12 +830,13 @@ export function PhotoUploader({
             </button>
             <button
               className="button primary"
-              disabled={dialogPending || missingFields(draft).length > 0}
+              disabled={dialogPending || missingFields(draft, rules).length > 0}
             >
               {dialogPending ? t("Saving…") : t("Save details")}
             </button>
           </div>
         </form>
+        </div>
       </ConfirmationDialog>
 
       <ConfirmationDialog

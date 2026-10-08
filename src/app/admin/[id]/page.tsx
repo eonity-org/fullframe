@@ -83,7 +83,7 @@ export default async function Page({
           <p className="intro">{t("Gather the photographs and, if you want one, a jury.")}</p>
         </div>
         <Link className="button" href={exhibitionPath(e, "salon")} target="_blank">
-          {t("Preview exhibition ↗")}
+          {e.phase === "open" ? t("Visit exhibition ↗") : t("Preview exhibition ↗")}
         </Link>
       </div>
       <AdminNav id={id} />
@@ -92,7 +92,12 @@ export default async function Page({
         phase={e.phase}
         page="setup"
         selected={e.selectedHashes?.length ?? null}
-        base={exhibitionPath(e)}
+        visibility={e.visibility}
+        privateLink={
+          e.phase === "open" && e.visibility === "unlisted" && e.vaultHash
+            ? `/x/${e.vaultHash}`
+            : null
+        }
       />
       {error && (
         <p className="error" role="alert">
@@ -132,6 +137,13 @@ export default async function Page({
             exhibitionId={id}
             state={e.submissions}
             limit={e.submissionLimit}
+            descriptionRequired={e.descriptionRequired}
+            suggestionsEnabled={e.suggestionsEnabled}
+            privacy={{
+              controller: e.dataController,
+              contact: e.dataContact,
+              notes: e.privacyNotes,
+            }}
             canOpen={upload === "ready"}
             blockedNote={upload === "ready" ? null : t(UPLOAD_ACCESS_NOTES[upload])}
             authors={authors.map((a) => ({
@@ -140,6 +152,7 @@ export default async function Page({
               url: a.token ? authorUrl(a.token) : null,
               sent: [...sentBy.values()].filter((s) => s.id === a.id).length,
               revoked: !!a.revokedAt,
+              aiConsent: !!a.aiConsentAt && !!a.noticeAcceptedAt,
             }))}
           />
         )}
@@ -170,11 +183,15 @@ export default async function Page({
               maxUploadBytes={maxUploadBytes}
               note={upload === "ready" ? null : t(UPLOAD_ACCESS_NOTES[upload])}
               addedTitle={t("In this exhibition")}
+              suggestions={e.suggestionsEnabled}
               added={added.map((photo) => ({
                 ...photo,
                 preview: previews.get(photo.hash) ?? null,
                 large: larger.get(photo.hash) ?? null,
                 authorLocked: sentBy.has(photo.hash),
+                ...(e.suggestionsEnabled && sentBy.has(photo.hash)
+                  ? { aiConsent: !!sentBy.get(photo.hash)?.aiConsentAt }
+                  : {}),
               }))}
             />
           </>

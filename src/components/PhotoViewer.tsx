@@ -20,7 +20,11 @@ export function PhotoViewer({
   const [info, setInfo] = useState(false);
   const work = works[index];
   // The description sits in the caption, clamped to a few lines; "more"
-  // expands it in place. Each photograph starts clamped.
+  // expands it in place. Each photograph starts clamped. The caption keeps
+  // the same height from one photograph to the next — the description box
+  // always takes its three lines and the "more" button its place (hidden when
+  // not needed), even with no description — so the photograph above it
+  // doesn't jump while paging.
   const descriptionRef = useRef<HTMLParagraphElement>(null);
   const [expanded, setExpanded] = useState(false);
   const [clamped, setClamped] = useState(false);
@@ -124,25 +128,23 @@ export function PhotoViewer({
         <div className="viewer-caption-meta">
           {work.credit && <p>{work.credit}</p>}
         </div>
-        {work.description && (
-          <div className="viewer-description">
-            <p
-              ref={descriptionRef}
-              className={expanded ? "expanded" : undefined}
-            >
-              {work.description}
-            </p>
-            {(clamped || expanded) && (
-              <button
-                className="quiet-button"
-                aria-expanded={expanded}
-                onClick={() => setExpanded(!expanded)}
-              >
-                {expanded ? t("Show less") : t("Show more")}
-              </button>
-            )}
-          </div>
-        )}
+        <div className="viewer-description">
+          <p
+            ref={descriptionRef}
+            className={expanded ? "expanded" : undefined}
+          >
+            {work.description}
+          </p>
+          {/* Always rendered, so its height is reserved; `visibility: hidden`
+              also takes it out of the tab order and the accessibility tree. */}
+          <button
+            className={`quiet-button${clamped || expanded ? "" : " viewer-more-unused"}`}
+            aria-expanded={expanded}
+            onClick={() => setExpanded(!expanded)}
+          >
+            {expanded ? t("Show less") : t("Show more")}
+          </button>
+        </div>
       </footer>
       {info && hasDetails && (
         <div

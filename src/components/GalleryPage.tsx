@@ -6,7 +6,7 @@ import {
   resolveAppearance,
   type GalleryView,
 } from "@/lib/appearance";
-import { loadGallery } from "@/lib/gallery";
+import { exhibitedWorks, loadGallery } from "@/lib/gallery";
 import { exhibitionPath, organizationLink } from "@/lib/paths";
 import { ExhibitionGallery } from "./ExhibitionGallery";
 import { Teaser } from "./Teaser";
@@ -25,9 +25,11 @@ export async function GalleryPage({
   const p = await params;
   const exhibition = await getExhibition(p.org, p.exhibition);
   if (!exhibition) notFound();
-  if (!(await canView(exhibition))) return (
-      <Teaser title={exhibition.title} organization={organizationLink(exhibition)} />
-    );
+  if (!(await canView(exhibition))) {
+    // Open but not viewable: unlisted, reached without its private link.
+    if (exhibition.phase === "open") notFound();
+    return <Teaser title={exhibition.title} organization={organizationLink(exhibition)} />;
+  }
   const saved = resolveAppearance(exhibition.appearance);
   const query = new URLSearchParams();
   // Unsaved appearance previews, for those who may manage this exhibition.
@@ -51,7 +53,7 @@ export async function GalleryPage({
       `${exhibitionPath(exhibition, appearance.defaultView)}${query.size ? `?${query}` : ""}`,
     );
   try {
-    const { works } = await loadGallery(exhibition);
+    const works = exhibitedWorks(exhibition, (await loadGallery(exhibition)).works);
     return (
       <ExhibitionGallery
         base={exhibitionPath(exhibition)}
