@@ -4,7 +4,7 @@
  * the invitation.
  */
 import { authorGate } from "@/lib/authorGate";
-import { authorEntries, forgetSubmission } from "@/lib/authors";
+import { authorEntries, forgetSubmission, recordSent } from "@/lib/authors";
 import { updatePhotograph, withdrawPhotograph } from "@/lib/uploads";
 import { detailsFrom, missingFields } from "@/lib/photoFields";
 import { log } from "@/lib/log";
@@ -31,13 +31,22 @@ export async function PATCH(request: Request, context: Context) {
     return Response.json({ error: "Invalid JSON" }, { status: 400 });
   }
   const details = { ...detailsFrom(body), author: author.name };
-  if (missingFields(details).length)
-    return Response.json({ error: t("Give the photograph a title.") }, { status: 400 });
+  const missing = missingFields(details, exhibition);
+  if (missing.length)
+    return Response.json(
+      {
+        error: missing.includes("name")
+          ? t("Give the photograph a title.")
+          : t("Give the photograph a description."),
+      },
+      { status: 400 },
+    );
   const result = await updatePhotograph(exhibition, hash, details);
   if (!result.ok) {
     log.warn("author.update.refused", { exhibitionId: exhibition.id, status: result.status });
     return Response.json({ error: t(result.error) }, { status: result.status });
   }
+  await recordSent(hash, details);
   return Response.json({ ok: true });
 }
 

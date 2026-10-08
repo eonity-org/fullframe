@@ -154,3 +154,13 @@ test("a photograph is ready once it has a title and an author", () => {
   assert.deepEqual(missingFields({ name: "Only a title" }), ["author"]);
   assert.deepEqual(missingFields({ ...complete, name: " ", author: "" }), ["name", "author"]);
 });
+
+test("an exhibition can require its authors to describe each photograph", () => {
+  const titled = { name: "Morning at the Pier", author: "Ana Ruiz" };
+  const rules = { descriptionRequired: true };
+  assert.deepEqual(missingFields(titled, rules), ["description"]);
+  assert.deepEqual(missingFields({ ...titled, description: "  " }, rules), ["description"]);
+  assert.deepEqual(missingFields({ ...titled, description: "Printed for the 1990 salon." }, rules), []);
+  // Off by default, and off means optional.
+  assert.deepEqual(missingFields(titled, { descriptionRequired: false }), []);
+});

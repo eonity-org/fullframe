@@ -1,6 +1,6 @@
 {
   "name": "fullframe",
-  "version": "0.2.3",
+  "version": "0.3.0",
   "private": true,
   "type": "module",
   "description": "FullFrame — photo exhibition & voting platform built on TYDAL",
@@ -28,7 +28,7 @@
     "i18n": "tsx scripts/i18n.ts"
   },
   "dependencies": {
-    "@tydal/client": "^1.6.0",
+    "@tydal/client": "^1.7.0",
     "better-sqlite3": "^11.10.0",
     "drizzle-orm": "^0.44.0",
     "next": "^15.3.0",

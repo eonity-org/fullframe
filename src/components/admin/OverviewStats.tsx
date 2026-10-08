@@ -2,7 +2,8 @@ import type { Exhibition } from "@/lib/exhibitions";
 import { viewerT } from "@/i18n/server";
 
 /**
- * The exhibition at a glance — photographs, visibility, jury. On Setup while
+ * The exhibition at a glance — photographs and jury (where it stands, and
+ * who can see it, is the stage bar's). On Setup while
  * preparing, and on Appearance & publish, the studio's first page once the
  * exhibition is in selection or live.
  */
@@ -31,13 +32,6 @@ export async function OverviewStats({
               : photographs !== null
               ? t("Connected to TYDAL")
               : t("Vault unavailable")}
-        </small>
-      </div>
-      <div>
-        <span className="eyebrow">{t("Exhibition")}</span>
-        <strong>{e.phase === "open" ? t("Published") : t("Private")}</strong>
-        <small>
-          {e.phase === "open" ? t("Ready to share") : t("Only you and invited jurors")}
         </small>
       </div>
       <div>

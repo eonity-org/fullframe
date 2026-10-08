@@ -6,8 +6,8 @@ import { withOrganizationSlug } from "@/lib/exhibitions";
 import { exhibitionPath } from "@/lib/paths";
 
 /**
- * Public sitemap: only OPEN exhibitions and their works — a
- * pre-opening exhibition leaks nothing here either. Works come from the
+ * Public sitemap: only OPEN, public exhibitions and their works — a
+ * pre-opening or unlisted exhibition leaks nothing here either. Works come from the
  * vault (now public), so the URLs match what a visitor sees.
  */
 export const dynamic = "force-dynamic";
@@ -22,7 +22,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const entries: MetadataRoute.Sitemap = [];
 
   for (const exhibition of exhibitions) {
-    if (exhibition.phase !== "open") continue;
+    if (exhibition.phase !== "open" || exhibition.visibility !== "public") continue;
     const lastModified = exhibition.openedAt ?? exhibition.updatedAt;
 
     const { enabledViews } = resolveAppearance(exhibition.appearance);

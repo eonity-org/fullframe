@@ -3,14 +3,16 @@
 /**
  * The stage bar's one forward move (StageBar.tsx): close judging, publish —
  * only on Appearance & publish, so the style is always seen before opening,
- * and from preparing too (the jury is optional) — or, once live, visit and
- * close the exhibition. Publishing and closing ask first.
+ * and from preparing too (the jury is optional) — or, once live, close the
+ * exhibition (visiting it is the page heading's button). Publishing and closing ask first; publishing also
+ * asks how: public, or only through a private link.
  */
 import Link from "next/link";
 import { useState, useTransition } from "react";
 import { openExhibition, setPhase } from "@/lib/actions";
 import { ConfirmationDialog } from "./ConfirmationDialog";
 import { useT } from "@/i18n/client";
+import type { Visibility } from "@db/schema";
 
 export type StudioPage = "setup" | "selection" | "publish";
 
@@ -19,17 +21,16 @@ export function StageActions({
   phase,
   page,
   selected,
-  base,
 }: {
   id: number;
   phase: string;
   page: StudioPage;
   selected: number | null;
-  base: string;
 }) {
   const t = useT();
   const [pending, start] = useTransition();
   const [confirm, setConfirm] = useState(false);
+  const [visibility, setVisibility] = useState<Visibility>("public");
   const [error, setError] = useState("");
   const run = (fn: () => Promise<void | { ok: true } | { error: string }>) =>
     start(async () => {
@@ -74,11 +75,6 @@ export function StageActions({
   const live = phase === "open";
   return (
     <div className="stage-actions">
-      {live && (
-        <Link href={`${base}/salon`} target="_blank">
-          {t("Visit exhibition ↗")}
-        </Link>
-      )}
       <button
         className={live ? undefined : "primary"}
         disabled={pending || (!live && !selected)}
@@ -98,15 +94,56 @@ export function StageActions({
         onCancel={() => setConfirm(false)}
         title={live ? t("Close this exhibition?") : t("Ready to open the doors?")}
       >
-        <p>
-          {live
-            ? t("The public gallery will close and TYDAL will restore the full submission set.")
-            : t.n(
-                selected ?? 0,
-                "{count} photograph will become public. Jury scoring will be closed.",
-                "{count} photographs will become public. Jury scoring will be closed.",
-              )}
-        </p>
+        {live ? (
+          <p>{t("The gallery will close and TYDAL will restore the full submission set.")}</p>
+        ) : (
+          <>
+            <fieldset className="visibility-choice">
+              <legend>{t("Who can see it")}</legend>
+              <label className="check">
+                <input
+                  type="radio"
+                  name="visibility"
+                  checked={visibility === "public"}
+                  onChange={() => setVisibility("public")}
+                />
+                <span>
+                  <strong>{t("Public")}</strong>
+                  <small className="muted">
+                    {t("Anyone can find it: at its address, on your organization’s page and on the FullFrame home page.")}
+                  </small>
+                </span>
+              </label>
+              <label className="check">
+                <input
+                  type="radio"
+                  name="visibility"
+                  checked={visibility === "unlisted"}
+                  onChange={() => setVisibility("unlisted")}
+                />
+                <span>
+                  <strong>{t("Private link")}</strong>
+                  <small className="muted">
+                    {t("Only people you give the link to can see it. It isn’t listed anywhere, and the photographs stay private in TYDAL.")}
+                  </small>
+                </span>
+              </label>
+            </fieldset>
+            <p>
+              {visibility === "public"
+                ? t.n(
+                    selected ?? 0,
+                    "{count} photograph will become public. Jury scoring will be closed.",
+                    "{count} photographs will become public. Jury scoring will be closed.",
+                  )
+                : t.n(
+                    selected ?? 0,
+                    "{count} photograph will be on view to whoever has the link. Jury scoring will be closed.",
+                    "{count} photographs will be on view to whoever has the link. Jury scoring will be closed.",
+                  )}
+            </p>
+          </>
+        )}
         {error && (
           <p role="alert" className="error">
             {error}
@@ -120,7 +157,7 @@ export function StageActions({
             className="primary"
             disabled={pending}
             onClick={() =>
-              run(() => (live ? setPhase(id, "selection") : openExhibition(id)))
+              run(() => (live ? setPhase(id, "selection") : openExhibition(id, visibility)))
             }
           >
             {pending ? t("Updating…") : live ? t("Close exhibition") : t("Publish now")}

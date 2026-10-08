@@ -31,7 +31,7 @@ export default async function Page({
   if (!e) notFound();
   const access = await requireStudioAccess(e);
   const t = await viewerT();
-  const { error, detail, opened } = await searchParams;
+  const { error, detail } = await searchParams;
   let photographs: number | null = null;
   try {
     photographs = (await loadGallery(e)).works.length;
@@ -57,6 +57,9 @@ export default async function Page({
           <h1>{e.title}</h1>
           <p className="intro">{t("Give the exhibition its look, then open it to the public.")}</p>
         </div>
+        <Link className="button" href={exhibitionPath(e, "salon")} target="_blank">
+          {e.phase === "open" ? t("Visit exhibition ↗") : t("Preview exhibition ↗")}
+        </Link>
       </div>
       <AdminNav id={id} />
       <StageBar
@@ -64,7 +67,12 @@ export default async function Page({
         phase={e.phase}
         page="publish"
         selected={e.selectedHashes?.length ?? null}
-        base={exhibitionPath(e)}
+        visibility={e.visibility}
+        privateLink={
+          e.phase === "open" && e.visibility === "unlisted" && e.vaultHash
+            ? `/x/${e.vaultHash}`
+            : null
+        }
       />
       {error && (
         <p className="error" role="alert">
@@ -72,11 +80,6 @@ export default async function Page({
             t(
               "The exhibition could not be published. Save a selection and check the vault connection.",
             )}
-        </p>
-      )}
-      {opened && e.phase === "open" && (
-        <p className="status ok" role="status">
-          {t("Your exhibition is live.")}
         </p>
       )}
       <OverviewStats exhibition={e} photographs={photographs} jurors={jurors.length} />

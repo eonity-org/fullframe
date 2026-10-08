@@ -45,6 +45,16 @@ export const EXHIBITION_PHASES = [
 ] as const;
 export type ExhibitionPhase = (typeof EXHIBITION_PHASES)[number];
 
+/**
+ * How an open exhibition is reached. `public`: at its address, listed on its
+ * organization's page and (unless the installation admin hides it) the home
+ * page; the vault is published. `unlisted`: only through its private link
+ * `/x/{vaultHash}`, listed nowhere; the vault stays private and FullFrame
+ * serves it with the read key, as for the jury. Chosen when opening.
+ */
+export const VISIBILITIES = ["public", "unlisted"] as const;
+export type Visibility = (typeof VISIBILITIES)[number];
+
 export const SUBMISSION_STATES = ["pending", "open", "closed"] as const;
 export type SubmissionState = (typeof SUBMISSION_STATES)[number];
 
@@ -93,6 +103,9 @@ export const exhibitions = sqliteTable(
     phase: text("phase", { enum: EXHIBITION_PHASES })
       .notNull()
       .default("setup"),
+    visibility: text("visibility", { enum: VISIBILITIES }).notNull().default("public"),
+    /** Listed on the installation's home page when public — the installation admin's call. */
+    onHome: integer("on_home", { mode: "boolean" }).notNull().default(true),
     /**
      * The submission period for invited authors (`authors`): `pending` until the
      * curator opens it or skips it, `open` while authors may send photographs,
@@ -104,6 +117,29 @@ export const exhibitions = sqliteTable(
       .default("pending"),
     /** How many photographs each invited author may send. */
     submissionLimit: integer("submission_limit").notNull().default(5),
+    /** Whether invited authors must describe each photograph (curators never must). */
+    descriptionRequired: integer("description_required", { mode: "boolean" })
+      .notNull()
+      .default(false),
+    /**
+     * Whether TYDAL's AITY proposes a title and description for the
+     * photographs: the curator's own, and an invited author's only with that
+     * author's consent. Fixed while submissions are open (the authors' form
+     * depends on it).
+     */
+    suggestionsEnabled: integer("suggestions_enabled", { mode: "boolean" })
+      .notNull()
+      .default(false),
+    /**
+     * Data protection, for the notice every invited author accepts before
+     * sending: who is responsible for the data (the organizer), where to
+     * exercise rights, and anything else the organizer must say (the AI
+     * service and where it runs, how long photographs are kept…). Required to
+     * open submissions.
+     */
+    dataController: text("data_controller"),
+    dataContact: text("data_contact"),
+    privacyNotes: text("privacy_notes"),
     /**
      * The exhibition's language (`en` | `es`): its public pages and jury speak
      * it, since the curator writes the exhibition's own text in it. The studio
@@ -220,6 +256,15 @@ export const authors = sqliteTable("authors", {
   /** The raw token, kept so the curator can re-copy the link (as for jurors). */
   token: text("token"),
   revokedAt: integer("revoked_at", { mode: "timestamp" }),
+  /**
+   * The author's record of consent: when they accepted the data protection
+   * notice (required to send anything), and when they agreed to AI processing
+   * (null: they didn't, or withdrew). `consentVersion` names the notice text
+   * they saw (src/lib/consent.ts).
+   */
+  noticeAcceptedAt: integer("notice_accepted_at", { mode: "timestamp" }),
+  aiConsentAt: integer("ai_consent_at", { mode: "timestamp" }),
+  consentVersion: text("consent_version"),
   ...timestamps,
 });
 
@@ -230,5 +275,14 @@ export const submissions = sqliteTable("submissions", {
     .notNull()
     .references(() => authors.id),
   resourceHash: text("resource_hash").notNull().unique(),
+  /** Sent to TYDAL with `suggest` — the author had agreed to AI processing. */
+  suggested: integer("suggested", { mode: "boolean" }).notNull().default(false),
+  /**
+   * The title and description as the author last sent them. TYDAL holds only
+   * the current ones, so once the curator edits them these are the author's
+   * own words, still offered in the edit form.
+   */
+  sentName: text("sent_name"),
+  sentDescription: text("sent_description"),
   ...timestamps,
 });

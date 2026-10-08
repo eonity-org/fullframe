@@ -51,6 +51,9 @@ export default async function Page({
             {t("Choose the photographs that tell your story.")}
           </p>
         </div>
+        <Link className="button" href={exhibitionPath(e, "salon")} target="_blank">
+          {e.phase === "open" ? t("Visit exhibition ↗") : t("Preview exhibition ↗")}
+        </Link>
       </div>
       <AdminNav id={id} />
       <StageBar
@@ -58,7 +61,12 @@ export default async function Page({
         phase={e.phase}
         page="selection"
         selected={e.selectedHashes?.length ?? null}
-        base={exhibitionPath(e)}
+        visibility={e.visibility}
+        privateLink={
+          e.phase === "open" && e.visibility === "unlisted" && e.vaultHash
+            ? `/x/${e.vaultHash}`
+            : null
+        }
       />
       <ExhibitionDetails exhibition={e} works={gallery?.works ?? []} />
       {gallery ? (
