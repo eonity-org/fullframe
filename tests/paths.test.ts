@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import {
   exhibitionPath,
+  guidePath,
   isExhibitionBase,
   isReservedOrganizationSlug,
   organizationLink,
@@ -20,7 +21,7 @@ test("an exhibition that doesn't know its organization yet keeps its old address
 });
 
 test("FullFrame's own top-level routes can't be an organization", () => {
-  for (const slug of ["admin", "api", "e", "j", "Admin", "sitemap.xml"])
+  for (const slug of ["admin", "api", "e", "j", "guide", "Admin", "sitemap.xml"])
     assert.ok(isReservedOrganizationSlug(slug), slug);
   for (const slug of ["lucila", "administracion", "jj"])
     assert.ok(!isReservedOrganizationSlug(slug), slug);
@@ -48,4 +49,9 @@ test("an exhibition names its organization in the header trail", () => {
     href: "/",
     label: null,
   });
+});
+
+test("a guide keeps the language it was opened in", () => {
+  assert.equal(guidePath("visitors", "es"), "/guide/visitors?lang=es");
+  assert.equal(guidePath("curators", "en"), "/guide/curators?lang=en");
 });

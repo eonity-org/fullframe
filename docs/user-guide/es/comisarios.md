@@ -226,6 +226,23 @@ nunca elimina fotografías ni puntuaciones.
 
 ![Cerrar una exposición](../images/curators-close-confirm.png)
 
+**Corregir un texto** (introducción, texto de la exposición, portada) no exige
+cerrarla: edítalo en **Selección** y **Guardar datos** mientras sigue
+publicada. La selección en sí queda bloqueada hasta que la cierres.
+
+**Añadir una fotografía** a una exposición publicada:
+
+1. **Cerrar exposición**. La fase vuelve a *En selección*.
+2. En **Configuración**, **Volver a la preparación**.
+3. Añade la fotografía en **2 · Fotografías** (o **Reabrir convocatoria** para
+   que la envíe un autor con su enlace).
+4. **Abrir el jurado** de nuevo: el jurado conserva sus puntuaciones y solo
+   valora la fotografía nueva (su fila indica *7 / 8 puntuaciones*). Después
+   **Cerrar el jurado**, o **Seguir sin jurado →** si no necesitas puntuaciones.
+5. En **Selección** la fotografía nueva aparece sin seleccionar; márcala para
+   exponerla y **Guardar selección**. El resto de tu selección se conserva.
+6. **Publicar exposición** → **Publicar ahora**. Tu estilo se conserva.
+
 ## Ajustes de conexión y eliminación
 
 Al final de Configuración:

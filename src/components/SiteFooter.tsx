@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
-import { useT } from "@/i18n/client";
+import { useLocale, useT } from "@/i18n/client";
+import { guidePath } from "@/lib/paths";
 
 export const TYDAL_URL = "https://github.com/eonity-org/tydal";
 export const EONITY_URL = "https://eonity.org";
@@ -8,7 +9,8 @@ export const EONITY_URL = "https://eonity.org";
 /**
  * The one footer for every public page. Left: the exhibition being viewed
  * (nothing on the home page). Right, the same everywhere: FullFrame with its
- * one brand line, the TYDAL it runs on, and Eonity. The brand line sits by the
+ * one brand line, the visitor guide (in the page's language), the TYDAL it
+ * runs on, and Eonity. The brand line sits by the
  * FullFrame credit so it never reads as the exhibition's own tagline; the home
  * page leaves it out because its headline already says it.
  */
@@ -20,6 +22,7 @@ export function SiteFooter({
   lemma?: boolean;
 }) {
   const t = useT();
+  const locale = useLocale();
   return (
     <footer className="gallery-footer">
       {title && <strong className="footer-identity">{title}</strong>}
@@ -35,6 +38,8 @@ export function SiteFooter({
             </span>
           )}
         </span>
+        <span aria-hidden="true">·</span>
+        <Link href={guidePath("visitors", locale)}>{t("User guide")}</Link>
         <span aria-hidden="true">·</span>
         <span className="footer-powered">
           {t.rich("Powered by {tydal}", {

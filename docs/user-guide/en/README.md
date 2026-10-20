@@ -18,6 +18,11 @@ part of it:
 | **Jurors** | Score the photographs through a personal link | [Being on a jury](jurors.md) |
 | **Administrators** | Prepare an exhibition's place in TYDAL, once per exhibition | [Setting up in TYDAL](setting-up-in-tydal.md) |
 
+Short, plain-language guides with a video live inside FullFrame itself:
+**User guide** in the footer of every public page (`/guide/visitors`) and
+**Help** at the top of the studio (`/guide/curators`). This guide is the
+complete reference.
+
 ## FullFrame and TYDAL
 
 FullFrame stores no photographs. They live in **TYDAL**, the asset platform
