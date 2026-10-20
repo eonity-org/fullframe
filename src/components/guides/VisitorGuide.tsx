@@ -117,7 +117,7 @@ function Es() {
         No necesitas cuenta ni instalar nada. Abre el enlace de la exposición en
         cualquier navegador, desde el ordenador, la tableta o el móvil.
       </p>
-      <GuideVideo name="visitors-es" label="Una visita a Domando el Viento, en un minuto" />
+      <GuideVideo name="visitors-es" label="Una visita a Domando el Viento, en minuto y medio" />
 
       <h2>1 · La entrada</h2>
       <p>
