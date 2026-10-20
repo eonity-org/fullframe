@@ -3476,3 +3476,9 @@ details[open] > summary {
   font-size: 13px;
   color: var(--muted);
 }
+.guide-video:has(+ .guide-more-video) {
+  margin-bottom: 8px;
+}
+.guide-more-video {
+  font-size: 13px;
+}

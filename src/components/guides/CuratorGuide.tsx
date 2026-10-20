@@ -24,7 +24,10 @@ function En() {
         you: you only add people, photographs and words. Nothing goes public
         until you say so.
       </p>
-      <GuideVideo name="curators-en" label="The whole process on Taming the Wind, in six minutes" />
+      <GuideVideo name="curators-short-en" label="The whole process on Taming the Wind, in a minute and a half" />
+      <p className="guide-more-video">
+        <a href="/guide/video/curators-en.mp4">Watch it step by step (6 min)</a>
+      </p>
 
       <h2>Before you start</h2>
       <p>
@@ -139,7 +142,10 @@ function Es() {
         añades personas, fotografías y textos. Nada se hace público hasta que
         tú lo decides.
       </p>
-      <GuideVideo name="curators-es" label="Todo el proceso con Domando el Viento, en seis minutos" />
+      <GuideVideo name="curators-short-es" label="Todo el proceso con Domando el Viento, en minuto y medio" />
+      <p className="guide-more-video">
+        <a href="/guide/video/curators-es.mp4">Verlo paso a paso (6 min)</a>
+      </p>
 
       <h2>Antes de empezar</h2>
       <p>
