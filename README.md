@@ -86,4 +86,4 @@ Contributions are welcome: see [CONTRIBUTING.md](CONTRIBUTING.md). Please report
 
 ## License
 
-FullFrame is licensed under the [Apache License 2.0](LICENSE). See [NOTICE](NOTICE) for attribution and trademark terms.
+FullFrame is licensed under the [Apache License 2.0](LICENSE). See [NOTICE](NOTICE) for attribution and trademark terms. 
