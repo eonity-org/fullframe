@@ -18,6 +18,10 @@ distinta:
 | **Miembros del jurado** | Valoran las fotografías con un enlace personal | [Formar parte de un jurado](jurado.md) |
 | **Administradores** | Preparan el espacio de cada exposición en TYDAL, una vez por exposición | [Preparar una exposición en TYDAL](preparar-en-tydal.md) |
 
+Dentro de FullFrame hay además guías breves y sencillas, con vídeo: **Guía de
+uso** al pie de cada página pública (`/guide/visitors`) y **Ayuda** arriba en el
+taller (`/guide/curators`). Esta guía es la referencia completa.
+
 ## FullFrame y TYDAL
 
 FullFrame no guarda fotografías. Las fotografías están en **TYDAL**, la

@@ -16,6 +16,7 @@ export const RESERVED_ORGANIZATION_SLUGS = [
   "e",
   "j",
   "x",
+  "guide",
   "_next",
   "robots.txt",
   "sitemap.xml",
@@ -23,6 +24,18 @@ export const RESERVED_ORGANIZATION_SLUGS = [
   "tydal-logo.png",
   "tydal-logo-white.png",
 ] as const;
+
+/** FullFrame's two plain-language guides, at `/guide/{guide}`. */
+export type Guide = "visitors" | "curators";
+
+/**
+ * A guide's address in a given language: `?lang=` keeps the reader in the
+ * language they were already reading — an exhibition's footer links in the
+ * exhibition's language, the studio's Help link in the studio's.
+ */
+export function guidePath(guide: Guide, locale: string): string {
+  return `/guide/${guide}?lang=${locale}`;
+}
 
 export function isReservedOrganizationSlug(slug: string): boolean {
   return (RESERVED_ORGANIZATION_SLUGS as readonly string[]).includes(

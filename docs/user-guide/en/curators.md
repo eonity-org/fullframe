@@ -211,6 +211,23 @@ photographs or scores.
 
 ![Closing an exhibition](../images/curators-close-confirm.png)
 
+**Fixing a text** (introduction, about text, cover) doesn't need closing: edit it
+on **Selection** and **Save details** while the exhibition stays live. The
+selection itself stays locked until you close it.
+
+**Adding a photograph** to a live exhibition:
+
+1. **Close exhibition**. The stage returns to *Selecting*.
+2. On **Setup**, **Back to preparing**.
+3. Add the photograph in **2 · Photographs** (or **Reopen submissions** and let
+   an author send it with their link).
+4. **Start judging** again: jurors keep their scores and only score the new
+   photograph (their row reads *7 / 8 votes*). Then **Close judging**, or
+   **Skip the jury →** if you don't need scores.
+5. On **Selection** the new photograph starts unselected; tick it to show it,
+   then **Save selection**. The rest of your selection is kept.
+6. **Publish exhibition** → **Publish now**. Your style is kept.
+
 ## Connection settings and deleting
 
 At the bottom of Setup:

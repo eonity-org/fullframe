@@ -3406,3 +3406,79 @@ details[open] > summary {
 .private-link small {
   flex-basis: 100%;
 }
+
+/* The plain-language guides (/guide/visitors, /guide/curators): one reading
+   column inside the page column, screenshots and the walkthrough video at its
+   full width. */
+.guide-page {
+  padding: 48px var(--page-inline) 0;
+}
+.guide-page > .eyebrow,
+.guide-page > h1,
+.guide-body,
+.guide-languages {
+  max-width: 760px;
+}
+.guide-languages {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 32px;
+  font-size: 13px;
+}
+.guide-languages a {
+  color: var(--muted);
+  text-decoration: none;
+}
+.guide-languages a[aria-current="page"] {
+  color: var(--ink);
+  font-weight: 600;
+}
+.guide-page > h1 {
+  margin: 12px 0 24px;
+}
+.guide-body h2 {
+  margin: 48px 0 12px;
+}
+.guide-body h3 {
+  margin: 28px 0 8px;
+}
+.guide-body p,
+.guide-body ul,
+.guide-body ol {
+  margin: 0 0 14px;
+}
+.guide-body li {
+  margin-bottom: 6px;
+}
+.guide-body a {
+  color: var(--accent);
+  text-underline-offset: 3px;
+}
+.guide-lead {
+  font-size: 17px;
+  color: var(--muted);
+}
+.guide-figure,
+.guide-video {
+  margin: 20px 0 28px;
+}
+.guide-figure img,
+.guide-video video {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--media);
+}
+.guide-video figcaption {
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.guide-video:has(+ .guide-more-video) {
+  margin-bottom: 8px;
+}
+.guide-more-video {
+  font-size: 13px;
+}
